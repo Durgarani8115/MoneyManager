@@ -1,11 +1,44 @@
 import CreateAccountDrawer from '@/components/create-account-drawer'
+import {DashboardOverview} from './_component/transaction-overview'
 import { Card,CardContent } from '@/components/ui/card'
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Plus } from 'lucide-react'
+import { getDashboardData, getUserAccounts } from '@/actions/dashboard'
+import AccountCard from './_component/account-card'
+import { getCurrentBudget } from '@/actions/budget'
+import {BudgetProgress} from './_component/budget-progress'
 
-function DashboardPage() {
+
+async function DashboardPage() {
+
+const accounts = await getUserAccounts();
+const defaultAccount = accounts.find(account => account.isDefault);
+
+let budgetData = null;
+if(defaultAccount){
+  budgetData = await getCurrentBudget(defaultAccount.id);
+}
+
+const transactions= await getDashboardData();
+
+
   return (
     <div className='px-5'>
+{/* Budget Progress */}
+{defaultAccount && <BudgetProgress
+initialBudget ={budgetData?.budget}
+currentExpenses={budgetData?.currentExpenses ||0}
+/>}
+
+{/* overview */}
+<Suspense fallback={"LoadingOverView..."}>
+<DashboardOverview 
+accounts={accounts}
+transactions={transactions || []}
+
+/>
+</Suspense>
+
     <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
       <CreateAccountDrawer>
         <Card className='hover:shadow-md transition-shadow cursor-pointer border-dashed'>
@@ -15,6 +48,11 @@ function DashboardPage() {
           </CardContent>
         </Card>
       </CreateAccountDrawer>
+
+      {accounts.length > 0 &&
+      accounts?.map((account) =>{
+        return <AccountCard key={account.id} account={account} /> ;
+      })}
     </div>
          </div>
   
