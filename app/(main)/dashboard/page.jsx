@@ -11,15 +11,29 @@ import {BudgetProgress} from './_component/budget-progress'
 
 async function DashboardPage() {
 
-const accounts = await getUserAccounts();
-const defaultAccount = accounts.find(account => account.isDefault);
-
+let accounts = [];
+let defaultAccount = null;
 let budgetData = null;
-if(defaultAccount){
-  budgetData = await getCurrentBudget(defaultAccount.id);
-}
+let transactions = [];
 
-const transactions= await getDashboardData();
+try {
+  accounts = (await getUserAccounts()) || [];
+  defaultAccount = Array.isArray(accounts) ? accounts.find(account => account.isDefault) : null;
+
+  if (defaultAccount) {
+    budgetData = await getCurrentBudget(defaultAccount.id);
+  }
+
+  transactions = (await getDashboardData()) || [];
+} catch (e) {
+  console.error('[dashboard] data fetch error:', e && e.message ? e.message : e);
+  return (
+    <div className="px-5">
+      <h2 className="text-xl font-semibold">Could not load dashboard data</h2>
+      <p className="text-muted-foreground">Please check your database connection or try again later.</p>
+    </div>
+  );
+}
 
 
   return (
@@ -49,10 +63,10 @@ transactions={transactions || []}
         </Card>
       </CreateAccountDrawer>
 
-      {accounts.length > 0 &&
-      accounts?.map((account) =>{
-        return <AccountCard key={account.id} account={account} /> ;
-      })}
+      {accounts && accounts.length > 0 &&
+            accounts.map((account) =>{
+              return <AccountCard key={account.id} account={account} /> ;
+            })}
     </div>
          </div>
   

@@ -2,10 +2,17 @@ import { getAccountWithTransaction } from "@/actions/accounts";
 import React, { Suspense } from "react";
 import TransactionTable from "../_components/transaction-table"; // ✅ FIXED: default import (no curly braces)
 import { BarLoader } from "react-spinners";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {AccountChart} from "../_components/account-char";
 const AccountPage = async ({ params }) => {
-  const accountData = await getAccountWithTransaction(params.id);
+  // Access params.id synchronously before awaiting other async operations
+  const { id } = params;
+  const accountData = await getAccountWithTransaction(id);
+
+  if (accountData && accountData.unauthenticated) {
+    // server-side redirect to sign-in
+    redirect('/sign-in');
+  }
 
   if (!accountData) {
     notFound();

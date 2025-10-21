@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
+// Debug helper: do not log secrets
 import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -16,9 +17,17 @@ const serializeAmount = (obj) => ({
 
 // Create Transaction
 export async function createTransaction(data) {
-  try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+  try{
+    let userId;
+    try {
+      const authRes = await auth();
+      userId = authRes.userId;
+      console.debug('[transaction] createTransaction auth userId:', userId ? 'present' : 'missing');
+      if(!userId) throw new Error("Unauthorized");
+    } catch (e) {
+      console.error('[transaction] auth() error:', e && e.message ? e.message : e);
+      throw e;
+    }
 
     // Get request data for ArcJet
     const req = await request();
@@ -100,37 +109,44 @@ export async function createTransaction(data) {
 }
 
 export async function getTransaction(id) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) throw new Error("User not found");
-
-  const transaction = await db.transaction.findUnique({
-    where: {
-      id,
-      userId: user.id,
-    },
-  });
-
-  if (!transaction) throw new Error("Transaction not found");
-
-  return serializeAmount(transaction);
-}
-
-export async function updateTransaction(id, data) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    const authRes = await auth();
+    const userId = authRes.userId;
+    if (!userId) return { unauthenticated: true };
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
-    if (!user) throw new Error("User not found");
+    if (!user) return { unauthenticated: true };
+
+    const transaction = await db.transaction.findUnique({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!transaction) return { success: false, error: "Transaction not found" };
+
+    return serializeAmount(transaction);
+  } catch (e) {
+    console.error('[transaction] getTransaction auth error:', e && e.message ? e.message : e);
+    return { unauthenticated: true };
+  }
+}
+
+export async function updateTransaction(id, data) {
+  try {
+    const authRes = await auth();
+    const userId = authRes.userId;
+    if (!userId) return { unauthenticated: true };
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) return { unauthenticated: true };
 
     // Get original transaction to calculate balance change
     const originalTransaction = await db.transaction.findUnique({
@@ -190,23 +206,23 @@ export async function updateTransaction(id, data) {
 
     return { success: true, data: serializeAmount(transaction) };
   } catch (error) {
-    throw new Error(error.message);
+    console.error('[transaction] updateTransaction error:', error && error.message ? error.message : error);
+    return { success: false, error: error.message };
   }
 }
 
 // Get User Transactions
 export async function getUserTransactions(query = {}) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    const authRes = await auth();
+    const userId = authRes.userId;
+    if (!userId) return { unauthenticated: true };
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
     });
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+    if (!user) return { unauthenticated: true };
 
     const transactions = await db.transaction.findMany({
       where: {
@@ -223,7 +239,8 @@ export async function getUserTransactions(query = {}) {
 
     return { success: true, data: transactions };
   } catch (error) {
-    throw new Error(error.message);
+    console.error('[transaction] getUserTransactions error:', error && error.message ? error.message : error);
+    return { success: false, error: error.message };
   }
 }
 

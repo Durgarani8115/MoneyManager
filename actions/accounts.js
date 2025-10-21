@@ -20,10 +20,17 @@ const serializeTransaction = (obj) => {
 };
 
 export async function updateDefaultAccount(accountId) {
-  
     try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    let userId;
+    try {
+      const authRes = await auth();
+      userId = authRes.userId;
+      console.debug('[accounts] updateDefaultAccount auth userId:', userId ? 'present' : 'missing');
+      if (!userId) throw new Error("Unauthorized");
+    } catch (e) {
+      console.error('[accounts] auth() error:', e && e.message ? e.message : e);
+      throw e;
+    }
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
@@ -49,17 +56,27 @@ export async function updateDefaultAccount(accountId) {
       data: { isDefault: true },
     });
 
-    revalidatePath("/dashboard");
+  revalidatePath("/dashboard");
+  // Revalidate this specific account page so data updates are visible
+  revalidatePath(`/account/${accountId}`);
 
-    return { success: true, data: serializeTransaction(account) };
+  return { success: true, data: serializeTransaction(account) };
   } catch (error) {
     return { success: false, error: error.message };
   }
 }
 
 export async function getAccountWithTransaction(accountId){
-  const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+  let userId;
+    try {
+      const authRes = await auth();
+      userId = authRes.userId;
+      console.debug('[accounts] getAccountWithTransaction auth userId:', userId ? 'present' : 'missing');
+      if (!userId) return { unauthenticated: true };
+    } catch (e) {
+      console.error('[accounts] auth() error:', e && e.message ? e.message : e);
+      return { unauthenticated: true };
+    }
 
     const user = await db.user.findUnique({
       where: { clerkUserId: userId },
@@ -131,7 +148,10 @@ await db.$transaction(async (tx) =>{
   }
 });
 revalidatePath("/dashboard");
-revalidatePath("/account/[id]");
+// Revalidate each affected account page
+for (const accountId of Object.keys(accountBalanceChanges)) {
+  revalidatePath(`/account/${accountId}`);
+}
 return { success : true};
 
   } catch(error){

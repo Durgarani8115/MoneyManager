@@ -31,13 +31,22 @@ const aj = arcjet({
 
 // Create base Clerk middleware
 const clerk = clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
+  // Debug: note when clerk middleware runs (non-sensitive)
+  try {
+    const { userId } = await auth();
+    console.debug('[middleware] clerk auth userId:', userId ? 'present' : 'missing');
 
-  if (!userId && isProtectedRoute(req)) {
-    const { redirectToSignIn } = await auth();
-    return redirectToSignIn();
+    if (!userId && isProtectedRoute(req)) {
+      // Redirect to local sign-in route to avoid potential Clerk redirect loops
+      return NextResponse.redirect(new URL('/sign-in', req.url));
+    }
+  } catch (e) {
+    console.error('[middleware] clerk auth error:', e && e.message ? e.message : e);
+    // On auth errors, redirect to sign-in to break potential refresh loops
+    if (isProtectedRoute(req)) {
+      return NextResponse.redirect(new URL('/sign-in', req.url));
+    }
   }
-
   return NextResponse.next();
 });
 
