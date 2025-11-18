@@ -8,6 +8,7 @@ import AccountCard from './_component/account-card'
 import { getCurrentBudget } from '@/actions/budget'
 import {BudgetProgress} from './_component/budget-progress'
 
+export const dynamic = "force-dynamic";
 
 async function DashboardPage() {
 
