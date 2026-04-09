@@ -10,7 +10,7 @@ import {BudgetProgress} from './_component/budget-progress'
 
 
 async function DashboardPage() {
-
+try {
 const accounts = await getUserAccounts();
 const defaultAccount = accounts.find(account => account.isDefault);
 
@@ -57,6 +57,21 @@ transactions={transactions || []}
          </div>
   
   )
+} catch (error) {
+  console.error("DashboardPage failed:", error);
+
+  return (
+    <div className='px-5'>
+      <Card>
+        <CardContent className='pt-6'>
+          <p className='text-sm text-muted-foreground'>
+            We could not load your dashboard right now. Please refresh and try again.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 }
 
 export default DashboardPage

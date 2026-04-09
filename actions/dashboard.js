@@ -19,9 +19,9 @@ const serializeTransaction = (obj) => {
 };
 
 export async function getUserAccounts() {
-  const user = await requireDbUser();
-
   try {
+    const user = await requireDbUser();
+
     const accounts = await db.account.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
@@ -39,7 +39,8 @@ export async function getUserAccounts() {
 
     return serializedAccounts;
   } catch (error) {
-    console.error(error.message);
+    console.error("getUserAccounts failed:", error);
+    return [];
   }
 }
 
@@ -121,13 +122,18 @@ export async function createAccount(data) {
 }
 
 export async function getDashboardData() {
-  const user = await requireDbUser();
+  try {
+    const user = await requireDbUser();
 
-  // Get all user transactions
-  const transactions = await db.transaction.findMany({
-    where: { userId: user.id },
-    orderBy: { date: "desc" },
-  });
+    // Get all user transactions
+    const transactions = await db.transaction.findMany({
+      where: { userId: user.id },
+      orderBy: { date: "desc" },
+    });
 
-  return transactions.map(serializeTransaction);
+    return transactions.map(serializeTransaction);
+  } catch (error) {
+    console.error("getDashboardData failed:", error);
+    return [];
+  }
 }
