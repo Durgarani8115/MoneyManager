@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { requireDbUser } from "@/lib/checkUser";
 import { revalidatePath } from "next/cache";
 // import { Select } from "react-day-picker";
 // import { include } from "zod";
@@ -25,12 +26,7 @@ export async function updateDefaultAccount(accountId) {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await requireDbUser();
 
     // Unset any existing default accounts for this user
     await db.account.updateMany({
@@ -58,17 +54,9 @@ export async function updateDefaultAccount(accountId) {
 }
 
 export async function getAccountWithTransaction(accountId){
-  const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    const user = await requireDbUser();
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const account = await db.account.findUnique({
+    const account = await db.account.findFirst({
       where:{id:accountId, userId: user.id },
       include :{
       transactions :{
@@ -90,15 +78,7 @@ export async function getAccountWithTransaction(accountId){
 
 export async function bulkDeleteTransactions(transactionIds){
   try{
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await requireDbUser();
 
 const transactions = await db.transaction.findMany({
   where :{ 
