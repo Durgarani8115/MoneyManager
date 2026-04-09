@@ -1,6 +1,7 @@
 "use server";
 
 import aj from "@/lib/arcjet";
+import { requireDbUser } from "@/lib/checkUser";
 import { db } from "@/lib/prisma";
 import { request } from "@arcjet/next";
 import { auth } from "@clerk/nextjs/server";
@@ -18,16 +19,7 @@ const serializeTransaction = (obj) => {
 };
 
 export async function getUserAccounts() {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   try {
     const accounts = await db.account.findMany({
@@ -82,13 +74,7 @@ export async function createAccount(data) {
       throw new Error("Request blocked");
     }
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await requireDbUser();
 
     // Convert balance to float before saving
     const balanceFloat = parseFloat(data.balance);
@@ -135,16 +121,7 @@ export async function createAccount(data) {
 }
 
 export async function getDashboardData() {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
+  const user = await requireDbUser();
 
   // Get all user transactions
   const transactions = await db.transaction.findMany({

@@ -1,19 +1,14 @@
 "use server"
 import {auth} from "@clerk/nextjs/server";
 import {db} from "@/lib/prisma";
+import { requireDbUser } from "@/lib/checkUser";
 
 import { revalidatePath } from "next/cache";
 
 
 export async function getCurrentBudget(accountId){
 try{
-    const {userId} = await auth();
-    if(!userId) throw new Error("Unauthorized");
-
-    const user = await db.user.findUnique({
-        where :{ clerkUserId : userId},
-    });
-    if(!user) throw new Error("User not found");
+    const user = await requireDbUser();
 
     const budget = await db.budget.findFirst({
         where:{
@@ -61,13 +56,10 @@ catch(error){
 export async function updateBudget(amount){
     try{
 
-         const {userId} = await auth();
+    const {userId} = await auth();
     if(!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-        where :{ clerkUserId : userId},
-    });
-    if(!user) throw new Error("User not found");
+    const user = await requireDbUser();
  
     const budget = await db.budget.upsert({
         where :{
