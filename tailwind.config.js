@@ -21,8 +21,6 @@ module.exports = {
     },
   },
   darkMode: ["class"],  // for theme switching
-plugins: [require("tailwindcss-animate")],
-
   plugins: [
     require("@tailwindcss/forms"),      // optional
     require("@tailwindcss/typography"), // optional
