@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Pencil, Check, X } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
 import { toast } from "sonner";
@@ -26,8 +26,6 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
   const {
     loading: isLoading,
     fn: updateBudgetFn,
-    data: updatedBudget,
-    error,
   } = useFetch(updateBudget);
 
   const percentUsed = initialBudget
@@ -42,26 +40,17 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
       return;
     }
 
-    await updateBudgetFn(amount);
+    const updatedBudget = await updateBudgetFn(amount);
+    if (!updatedBudget?.success) return;
+
+    setIsEditing(false);
+    toast.success("Budget updated successfully");
   };
 
   const handleCancel = () => {
     setNewBudget(initialBudget?.amount?.toString() || "");
     setIsEditing(false);
   };
-
-  useEffect(() => {
-    if (updatedBudget?.success) {
-      setIsEditing(false);
-      toast.success("Budget updated successfully");
-    }
-  }, [updatedBudget]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error.message || "Failed to update budget");
-    }
-  }, [error]);
 
   return (
     <Card>

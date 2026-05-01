@@ -86,8 +86,9 @@ const transactions = await db.transaction.findMany({
   userId : user.id},
 });
 const accountBalanceChanges = transactions.reduce((acc,transaction) => {
+  const amount = transaction.amount.toNumber();
   const change = transaction.type === 'EXPENSE'
-  ? transaction.amount: -transaction.amount;
+  ? amount : -amount;
   acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
  return acc;
 },{})
@@ -102,7 +103,7 @@ await db.$transaction(async (tx) =>{
      userId : user.id},
   });
   for(const [accountId, balanaceChange] of Object.entries(accountBalanceChanges)){
-    await tx.account.update({
+    await tx.account.updateMany({
       where :{ id : accountId, userId : user.id},
       data :{ 
         balance : {
@@ -111,7 +112,9 @@ await db.$transaction(async (tx) =>{
   }
 });
 revalidatePath("/dashboard");
-revalidatePath("/account/[id]");
+for (const accountId of Object.keys(accountBalanceChanges)) {
+  revalidatePath(`/account/${accountId}`);
+}
 return { success : true};
 
   } catch(error){

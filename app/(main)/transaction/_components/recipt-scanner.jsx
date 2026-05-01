@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ export function ReceiptScanner({ onScanComplete }) {
   const {
     loading: scanReceiptLoading,
     fn: scanReceiptFn,
-    data: scannedData,
   } = useFetch(scanReceipt);
 
   const handleReceiptScan = async (file) => {
@@ -22,15 +21,12 @@ export function ReceiptScanner({ onScanComplete }) {
       return;
     }
 
-    await scanReceiptFn(file);
-  };
-
-  useEffect(() => {
-    if (scannedData && !scanReceiptLoading) {
+    const scannedData = await scanReceiptFn(file);
+    if (scannedData) {
       onScanComplete(scannedData);
       toast.success("Receipt scanned successfully");
     }
-  }, [scanReceiptLoading, scannedData]);
+  };
 
   return (
     <div className="flex items-center gap-4">

@@ -26,12 +26,13 @@ const HeroSection = () => {
     return (
         <div className="pb-20 px-4">
             <div className="container mx-auto text-center">
-                <h1 className="text-4xl md:text-7xl lg:text-[105px] pb-6 gradient-title font-bold mb-4">
-                    Manage your Finances <br /> with Fintech
+                <h1 className="text-4xl md:text-7xl lg:text-[90px] pb-6 gradient-title font-bold mb-4">
+                    Take Control of Your Money <br /> with Money Manager
                 </h1>
-                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi, unde
-                    delectus quam deleniti Lorem ipsum dolor sit amet.lorem10lorem10 lorem8
+                <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto ">
+                    A smart personal finance dashboard to track accounts, record income
+                    and expenses, manage monthly budgets, and stay on top of recurring
+                    transactions with AI-assisted receipt scanning.
                 </p>
 
                 <div className="flex justify-center space-x-4 ">

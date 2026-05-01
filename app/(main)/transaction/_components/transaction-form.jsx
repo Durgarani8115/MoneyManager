@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -25,7 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import CreateAccountDrawer  from "@/components/create-account-drawer";
+import CreateAccountDrawer from "@/components/create-account-drawer";
 import { cn } from "@/lib/utils";
 import { createTransaction, updateTransaction } from "@/actions/transaction";
 import { transactionSchema } from "@/app/lib/schema";
@@ -45,9 +44,8 @@ export function AddTransactionForm({
     register,
     handleSubmit,
     formState: { errors },
-    watch,
+    control,
     setValue,
-    getValues,
     reset,
   } = useForm({
     resolver: zodResolver(transactionSchema),
@@ -78,20 +76,27 @@ export function AddTransactionForm({
   const {
     loading: transactionLoading,
     fn: transactionFn,
-    data: transactionResult,
   } = useFetch(editMode ? updateTransaction : createTransaction);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const formData = {
       ...data,
       amount: parseFloat(data.amount),
     };
 
-    if (editMode) {
-      transactionFn(editId, formData);
-    } else {
-      transactionFn(formData);
-    }
+    const transactionResult = editMode
+      ? await transactionFn(editId, formData)
+      : await transactionFn(formData);
+
+    if (!transactionResult?.success) return;
+
+    toast.success(
+      editMode
+        ? "Transaction updated successfully"
+        : "Transaction created successfully"
+    );
+    reset();
+    router.push(`/account/${transactionResult.data.accountId}`);
   };
 
   const handleScanComplete = (scannedData) => {
@@ -108,24 +113,15 @@ export function AddTransactionForm({
     }
   };
 
-  useEffect(() => {
-    if (transactionResult?.success && !transactionLoading) {
-      toast.success(
-        editMode
-          ? "Transaction updated successfully"
-          : "Transaction created successfully"
-      );
-      reset();
-      router.push(`/account/${transactionResult.data.accountId}`);
-    }
-  }, [transactionResult, transactionLoading, editMode]);
-
-  const type = watch("type");
-  const isRecurring = watch("isRecurring");
-  const date = watch("date");
+  const type = useWatch({ control, name: "type" });
+  const isRecurring = useWatch({ control, name: "isRecurring" });
+  const date = useWatch({ control, name: "date" });
+  const accountId = useWatch({ control, name: "accountId" });
+  const category = useWatch({ control, name: "category" });
+  const recurringInterval = useWatch({ control, name: "recurringInterval" });
 
   const filteredCategories = categories.filter(
-    (category) => category.type === type
+    (categoryItem) => categoryItem.type === type
   );
 
   return (
@@ -138,7 +134,7 @@ export function AddTransactionForm({
         <label className="text-sm font-medium">Type</label>
         <Select
           onValueChange={(value) => setValue("type", value)}
-          defaultValue={type}
+          value={type}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select type" />
@@ -172,7 +168,7 @@ export function AddTransactionForm({
           <label className="text-sm font-medium">Account</label>
           <Select
             onValueChange={(value) => setValue("accountId", value)}
-            defaultValue={getValues("accountId")}
+            value={accountId}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select account" />
@@ -183,7 +179,11 @@ export function AddTransactionForm({
                   {account.name} (${parseFloat(account.balance).toFixed(2)})
                 </SelectItem>
               ))}
-              <CreateAccountDrawer>
+              <CreateAccountDrawer
+                onAccountCreated={(account) =>
+                  setValue("accountId", account.id, { shouldValidate: true })
+                }
+              >
                 <Button
                   variant="ghost"
                   className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
@@ -204,7 +204,7 @@ export function AddTransactionForm({
         <label className="text-sm font-medium">Category</label>
         <Select
           onValueChange={(value) => setValue("category", value)}
-          defaultValue={getValues("category")}
+          value={category}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select category" />
@@ -284,7 +284,7 @@ export function AddTransactionForm({
           <label className="text-sm font-medium">Recurring Interval</label>
           <Select
             onValueChange={(value) => setValue("recurringInterval", value)}
-            defaultValue={getValues("recurringInterval")}
+            value={recurringInterval}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select interval" />

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
@@ -28,14 +29,15 @@ import { Switch } from "@/components/ui/switch";
 import { createAccount } from "@/actions/dashboard";
 import { accountSchema } from "@/app/lib/schema";
 
-export function CreateAccountDrawer({ children }) {
+export function CreateAccountDrawer({ children, onAccountCreated }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
+    control,
     setValue,
-    watch,
     reset,
   } = useForm({
     resolver: zodResolver(accountSchema),
@@ -50,27 +52,22 @@ export function CreateAccountDrawer({ children }) {
   const {
     loading: createAccountLoading,
     fn: createAccountFn,
-    error,
-    data: newAccount,
   } = useFetch(createAccount);
 
   const onSubmit = async (data) => {
-    await createAccountFn(data);
+    const newAccount = await createAccountFn(data);
+
+    if (!newAccount?.success) return;
+
+    toast.success("Account created successfully");
+    onAccountCreated?.(newAccount.data);
+    reset();
+    setOpen(false);
+    router.refresh();
   };
 
-  useEffect(() => {
-    if (newAccount) {
-      toast.success("Account created successfully");
-      reset();
-      setOpen(false);
-    }
-  }, [newAccount, reset]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error.message || "Failed to create account");
-    }
-  }, [error]);
+  const accountType = useWatch({ control, name: "type" });
+  const isDefault = useWatch({ control, name: "isDefault" });
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -107,7 +104,7 @@ export function CreateAccountDrawer({ children }) {
               </label>
               <Select
                 onValueChange={(value) => setValue("type", value)}
-                defaultValue={watch("type")}
+                value={accountType}
               >
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Select type" />
@@ -155,7 +152,7 @@ export function CreateAccountDrawer({ children }) {
               </div>
               <Switch
                 id="isDefault"
-                checked={watch("isDefault")}
+                checked={isDefault}
                 onCheckedChange={(checked) => setValue("isDefault", checked)}
               />
             </div>
