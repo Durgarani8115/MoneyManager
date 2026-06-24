@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "email": "email dev",
-    "build": "next build",
+    "build": "cross-env NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
@@ -55,6 +55,7 @@
     "@eslint/eslintrc": "^3.3.5",
     "@react-email/preview-server": "^5.2.10",
     "@tailwindcss/postcss": "^4.2.2",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.3",
     "inngest-cli": "^1.17.9",
