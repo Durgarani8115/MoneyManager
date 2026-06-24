@@ -6,6 +6,7 @@ import { db } from "@/lib/prisma";
 import { request } from "@arcjet/next";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 
 const serializeTransaction = (obj) => {
   const serialized = { ...obj };
@@ -39,6 +40,7 @@ export async function getUserAccounts() {
 
     return serializedAccounts;
   } catch (error) {
+    unstable_rethrow(error);
     console.error("getUserAccounts failed:", error);
     return [];
   }
@@ -133,6 +135,7 @@ export async function getDashboardData() {
 
     return transactions.map(serializeTransaction);
   } catch (error) {
+    unstable_rethrow(error);
     console.error("getDashboardData failed:", error);
     return [];
   }

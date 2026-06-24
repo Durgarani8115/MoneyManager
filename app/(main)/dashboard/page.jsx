@@ -7,6 +7,7 @@ import { getDashboardData, getUserAccounts } from '@/actions/dashboard'
 import AccountCard from './_component/account-card'
 import { getCurrentBudget } from '@/actions/budget'
 import {BudgetProgress} from './_component/budget-progress'
+import { unstable_rethrow } from 'next/navigation'
 
 
 async function DashboardPage() {
@@ -58,6 +59,7 @@ transactions={transactions || []}
   
   )
 } catch (error) {
+  unstable_rethrow(error);
   console.error("DashboardPage failed:", error);
 
   return (

@@ -4,6 +4,7 @@ import {db} from "@/lib/prisma";
 import { requireDbUser } from "@/lib/checkUser";
 
 import { revalidatePath } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 
 
 export async function getCurrentBudget(accountId){
@@ -49,6 +50,7 @@ try{
     }
 }
 catch(error){
+    unstable_rethrow(error);
     throw new Error(error.message);
 }
 }

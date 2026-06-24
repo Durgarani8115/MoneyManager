@@ -4,16 +4,9 @@ import Link  from 'next/link';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, PenBoxIcon } from 'lucide-react';
-import { checkUser } from '@/lib/checkUser';
 
 
-const Header = async () => {
-  try {
-    await checkUser();
-  } catch (error) {
-    console.error("Header checkUser failed:", error);
-  }
-
+const Header = () => {
   return (
     <div className='fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b'>
 

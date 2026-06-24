@@ -7,6 +7,7 @@ const arcjetMode = process.env.NODE_ENV === "production" ? "LIVE" : "DRY_RUN";
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/account(.*)",
+  "/transaction(.*)",
   "/profile(.*)",
 ]);
 
