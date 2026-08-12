@@ -3,6 +3,7 @@ import { checkUser } from '@/lib/checkUser'
 import CategorySidebar from '@/components/sidebar'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { HeaderSearch } from '@/components/header-search'
 import { SignedIn, UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
@@ -17,17 +18,20 @@ const MainLayout = async ({ children }) => {
     <SidebarProvider defaultOpen={true}>
       <CategorySidebar />
       <SidebarInset className="flex flex-col h-full min-w-0 bg-background overflow-hidden">
-        {/* Sticky Header Top Bar */}
-        <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 px-4 md:px-6 backdrop-blur-md shrink-0">
+        {/* Sticky Header Top Bar with Global Search */}
+        <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 px-4 md:px-6 backdrop-blur-md shrink-0 gap-4">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="h-8 w-8 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-all shadow-xs" />
             <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 hidden md:block" />
-            <span className="text-xs font-extrabold tracking-wider uppercase text-zinc-500">
-              Workspace Dashboard
+            <span className="text-xs font-extrabold tracking-wider uppercase text-zinc-500 hidden lg:inline">
+              Dashboard
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Global Header Search Bar */}
+          <HeaderSearch />
+
+          <div className="flex items-center gap-3 shrink-0">
             <Link href="/transaction/create">
               <Button size="sm" className="h-8 px-3 text-xs bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white font-medium shadow-xs">
                 <Plus className="h-3.5 w-3.5 mr-1" />
