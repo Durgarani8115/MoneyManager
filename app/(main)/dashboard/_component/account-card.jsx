@@ -45,10 +45,10 @@ export function AccountCard({ account }) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow group relative">
+    <Card className="hover:border-zinc-400 dark:hover:border-zinc-700 transition-all border-zinc-200/80 dark:border-zinc-800 shadow-xs group relative">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <Link href={`/account/${id}`} className="flex-1">
-          <CardTitle className="text-sm font-medium capitalize cursor-pointer">
+          <CardTitle className="text-sm font-semibold capitalize cursor-pointer text-zinc-900 dark:text-zinc-100 hover:text-zinc-600">
             {name}
           </CardTitle>
         </Link>
@@ -61,20 +61,20 @@ export function AccountCard({ account }) {
 
       <Link href={`/account/${id}`} className="block">
         <CardContent>
-          <div className="text-2xl font-bold">${parseFloat(balance).toFixed(2)}</div>
-          <p className="text-xs text-muted-foreground">
+          <div className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">${parseFloat(balance).toFixed(2)}</div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             {type.charAt(0) + type.slice(1).toLowerCase()} Account
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-between text-sm text-muted-foreground">
-          <div className="flex items-center">
-            <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
-            Income
+        <CardFooter className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+          <div className="flex items-center gap-1">
+            <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Income</span>
           </div>
-          <div className="flex items-center">
-            <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
-            Expense
+          <div className="flex items-center gap-1">
+            <ArrowDownRight className="h-3.5 w-3.5 text-rose-500" />
+            <span>Expense</span>
           </div>
         </CardFooter>
       </Link>

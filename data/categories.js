@@ -4,42 +4,42 @@ export const defaultCategories = [
     id: "salary",
     name: "Salary",
     type: "INCOME",
-    color: "#22c55e", // green-500
+    color: "#18181b", // zinc-900
     icon: "Wallet",
   },
   {
     id: "freelance",
     name: "Freelance",
     type: "INCOME",
-    color: "#06b6d4", // cyan-500
+    color: "#27272a", // zinc-800
     icon: "Laptop",
   },
   {
     id: "investments",
     name: "Investments",
     type: "INCOME",
-    color: "#6366f1", // indigo-500
+    color: "#3f3f46", // zinc-700
     icon: "TrendingUp",
   },
   {
     id: "business",
     name: "Business",
     type: "INCOME",
-    color: "#ec4899", // pink-500
+    color: "#52525b", // zinc-600
     icon: "Building",
   },
   {
     id: "rental",
     name: "Rental",
     type: "INCOME",
-    color: "#f59e0b", // amber-500
+    color: "#71717a", // zinc-500
     icon: "Home",
   },
   {
     id: "other-income",
     name: "Other Income",
     type: "INCOME",
-    color: "#64748b", // slate-500
+    color: "#a1a1aa", // zinc-400
     icon: "Plus",
   },
 
@@ -48,7 +48,7 @@ export const defaultCategories = [
     id: "housing",
     name: "Housing",
     type: "EXPENSE",
-    color: "#ef4444", // red-500
+    color: "#18181b", // zinc-900
     icon: "Home",
     subcategories: ["Rent", "Mortgage", "Property Tax", "Maintenance"],
   },
@@ -56,7 +56,7 @@ export const defaultCategories = [
     id: "transportation",
     name: "Transportation",
     type: "EXPENSE",
-    color: "#f97316", // orange-500
+    color: "#27272a", // zinc-800
     icon: "Car",
     subcategories: ["Fuel", "Public Transport", "Maintenance", "Parking"],
   },
@@ -64,14 +64,14 @@ export const defaultCategories = [
     id: "groceries",
     name: "Groceries",
     type: "EXPENSE",
-    color: "#84cc16", // lime-500
+    color: "#3f3f46", // zinc-700
     icon: "Shopping",
   },
   {
     id: "utilities",
     name: "Utilities",
     type: "EXPENSE",
-    color: "#06b6d4", // cyan-500
+    color: "#52525b", // zinc-600
     icon: "Zap",
     subcategories: ["Electricity", "Water", "Gas", "Internet", "Phone"],
   },
@@ -79,7 +79,7 @@ export const defaultCategories = [
     id: "entertainment",
     name: "Entertainment",
     type: "EXPENSE",
-    color: "#8b5cf6", // violet-500
+    color: "#71717a", // zinc-500
     icon: "Film",
     subcategories: ["Movies", "Games", "Streaming Services"],
   },
@@ -87,14 +87,14 @@ export const defaultCategories = [
     id: "food",
     name: "Food",
     type: "EXPENSE",
-    color: "#f43f5e", // rose-500
+    color: "#888888", // monochrome dark grey
     icon: "UtensilsCrossed",
   },
   {
     id: "shopping",
     name: "Shopping",
     type: "EXPENSE",
-    color: "#ec4899", // pink-500
+    color: "#a1a1aa", // zinc-400
     icon: "ShoppingBag",
     subcategories: ["Clothing", "Electronics", "Home Goods"],
   },
@@ -102,7 +102,7 @@ export const defaultCategories = [
     id: "healthcare",
     name: "Healthcare",
     type: "EXPENSE",
-    color: "#14b8a6", // teal-500
+    color: "#71717a", // zinc-500
     icon: "HeartPulse",
     subcategories: ["Medical", "Dental", "Pharmacy", "Insurance"],
   },
@@ -110,7 +110,7 @@ export const defaultCategories = [
     id: "education",
     name: "Education",
     type: "EXPENSE",
-    color: "#6366f1", // indigo-500
+    color: "#52525b", // zinc-600
     icon: "GraduationCap",
     subcategories: ["Tuition", "Books", "Courses"],
   },
@@ -118,7 +118,7 @@ export const defaultCategories = [
     id: "personal",
     name: "Personal Care",
     type: "EXPENSE",
-    color: "#d946ef", // fuchsia-500
+    color: "#3f3f46", // zinc-700
     icon: "Smile",
     subcategories: ["Haircut", "Gym", "Beauty"],
   },
@@ -126,14 +126,14 @@ export const defaultCategories = [
     id: "travel",
     name: "Travel",
     type: "EXPENSE",
-    color: "#0ea5e9", // sky-500
+    color: "#27272a", // zinc-800
     icon: "Plane",
   },
   {
     id: "insurance",
     name: "Insurance",
     type: "EXPENSE",
-    color: "#64748b", // slate-500
+    color: "#52525b", // zinc-600
     icon: "Shield",
     subcategories: ["Life", "Home", "Vehicle"],
   },
@@ -141,14 +141,14 @@ export const defaultCategories = [
     id: "gifts",
     name: "Gifts & Donations",
     type: "EXPENSE",
-    color: "#f472b6", // pink-400
+    color: "#71717a", // zinc-500
     icon: "Gift",
   },
   {
     id: "bills",
     name: "Bills & Fees",
     type: "EXPENSE",
-    color: "#fb7185", // rose-400
+    color: "#18181b", // zinc-900
     icon: "Receipt",
     subcategories: ["Bank Fees", "Late Fees", "Service Charges"],
   },
@@ -156,7 +156,7 @@ export const defaultCategories = [
     id: "other-expense",
     name: "Other Expenses",
     type: "EXPENSE",
-    color: "#94a3b8", // slate-400
+    color: "#a1a1aa", // zinc-400
     icon: "MoreHorizontal",
   },
 ];

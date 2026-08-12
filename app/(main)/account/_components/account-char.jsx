@@ -76,13 +76,13 @@ export function AccountChart({ transactions }) {
   }, [filteredData]);
 
   return (
-    <Card>
+    <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-        <CardTitle className="text-base font-normal">
+        <CardTitle className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           Transaction Overview
         </CardTitle>
         <Select defaultValue={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[140px] border-zinc-300 dark:border-zinc-700">
             <SelectValue placeholder="Select range" />
           </SelectTrigger>
           <SelectContent>
@@ -97,24 +97,24 @@ export function AccountChart({ transactions }) {
       <CardContent>
         <div className="flex justify-around mb-6 text-sm">
           <div className="text-center">
-            <p className="text-muted-foreground">Total Income</p>
-            <p className="text-lg font-bold text-green-500">
+            <p className="text-zinc-500 dark:text-zinc-400">Total Income</p>
+            <p className="text-lg font-extrabold text-emerald-500">
               ${totals.income.toFixed(2)}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-muted-foreground">Total Expenses</p>
-            <p className="text-lg font-bold text-red-500">
+            <p className="text-zinc-500 dark:text-zinc-400">Total Expenses</p>
+            <p className="text-lg font-extrabold text-rose-500">
               ${totals.expense.toFixed(2)}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-muted-foreground">Net</p>
+            <p className="text-zinc-500 dark:text-zinc-400">Net</p>
             <p
-              className={`text-lg font-bold ${
+              className={`text-lg font-extrabold ${
                 totals.income - totals.expense >= 0
-                  ? "text-green-500"
-                  : "text-red-500"
+                  ? "text-emerald-500"
+                  : "text-rose-500"
               }`}
             >
               ${(totals.income - totals.expense).toFixed(2)}
@@ -127,7 +127,7 @@ export function AccountChart({ transactions }) {
               data={filteredData}
               margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
               <XAxis
                 dataKey="date"
                 fontSize={12}
@@ -152,13 +152,13 @@ export function AccountChart({ transactions }) {
               <Bar
                 dataKey="income"
                 name="Income"
-                fill="#22c55e"
+                fill="#18181b"
                 radius={[4, 4, 0, 0]}
               />
               <Bar
                 dataKey="expense"
                 name="Expense"
-                fill="#ef4444"
+                fill="#71717a"
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

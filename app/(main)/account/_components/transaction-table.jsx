@@ -325,9 +325,9 @@ const handleClearFilter=() =>{
                                             className="px-2 py-1 rounded text-whitetext-sm  "
                                         > {transaction.category}  </span> </TableCell>
                                     <TableCell
-                                        className="text-right font-medium"
+                                        className="text-right font-semibold"
                                         style={{
-                                            color: transaction.type === "EXPENSE" ? "red" : "green",
+                                            color: transaction.type === "EXPENSE" ? "#f43f5e" : "#10b981",
                                         }}
                                     >
                                         {transaction.type === 'EXPENSE' ? "-" : '+'}$
@@ -337,7 +337,7 @@ const handleClearFilter=() =>{
                                            <Tooltip>
   <TooltipTrigger>
  <Badge variant='outline'
- className='gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200'>
+ className='gap-1 bg-zinc-100 text-zinc-900 border-zinc-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700 font-medium'>
     <RefreshCw className='h-3 w-3' />
     {RECURRING_INTERVALS[
         transaction.recurringInterval

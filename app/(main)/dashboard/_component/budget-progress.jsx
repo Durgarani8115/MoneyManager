@@ -47,16 +47,17 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
     toast.success("Budget updated successfully");
   };
 
+
   const handleCancel = () => {
     setNewBudget(initialBudget?.amount?.toString() || "");
     setIsEditing(false);
   };
 
   return (
-    <Card>
+    <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-xs mb-6">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex-1">
-          <CardTitle className="text-sm font-medium">
+          <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Monthly Budget (Default Account)
           </CardTitle>
           <div className="flex items-center gap-2 mt-1">
@@ -66,7 +67,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                   type="number"
                   value={newBudget}
                   onChange={(e) => setNewBudget(e.target.value)}
-                  className="w-32"
+                  className="w-32 border-zinc-300 dark:border-zinc-700"
                   placeholder="Enter amount"
                   autoFocus
                   disabled={isLoading}
@@ -77,7 +78,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                   onClick={handleUpdateBudget}
                   disabled={isLoading}
                 >
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-emerald-500" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -85,12 +86,12 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                   onClick={handleCancel}
                   disabled={isLoading}
                 >
-                  <X className="h-4 w-4 text-red-500" />
+                  <X className="h-4 w-4 text-rose-500" />
                 </Button>
               </div>
             ) : (
               <>
-                <CardDescription>
+                <CardDescription className="text-zinc-600 dark:text-zinc-400">
                   {initialBudget
                     ? `$${currentExpenses.toFixed(
                         2
@@ -101,7 +102,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsEditing(true)}
-                  className="h-6 w-6"
+                  className="h-6 w-6 text-zinc-500 hover:text-zinc-900"
                 >
                   <Pencil className="h-3 w-3" />
                 </Button>
@@ -116,15 +117,14 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
             <Progress
               value={percentUsed}
               extraStyles={`${
-                // add to Progress component
                 percentUsed >= 90
-                  ? "bg-red-500"
+                  ? "bg-zinc-900 dark:bg-zinc-100"
                   : percentUsed >= 75
-                    ? "bg-yellow-500"
-                    : "bg-green-500"
+                    ? "bg-zinc-700 dark:bg-zinc-300"
+                    : "bg-zinc-500 dark:bg-zinc-400"
               }`}
             />
-            <p className="text-xs text-muted-foreground text-right">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 text-right font-medium">
               {percentUsed.toFixed(1)}% used
             </p>
           </div>
