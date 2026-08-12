@@ -4,7 +4,7 @@ import CategorySidebar from '@/components/sidebar'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { HeaderSearch } from '@/components/header-search'
-import { SignedIn, UserButton } from '@clerk/nextjs'
+import { HeaderTitle } from '@/components/header-title'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -18,14 +18,13 @@ const MainLayout = async ({ children }) => {
     <SidebarProvider defaultOpen={true}>
       <CategorySidebar />
       <SidebarInset className="flex flex-col h-full min-w-0 bg-background overflow-hidden">
-        {/* Sticky Header Top Bar with Global Search */}
+        {/* Dynamic Header Top Bar */}
         <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 px-4 md:px-6 backdrop-blur-md shrink-0 gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <SidebarTrigger className="h-8 w-8 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-all shadow-xs" />
-            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 hidden md:block" />
-            <span className="text-xs font-extrabold tracking-wider uppercase text-zinc-500 hidden lg:inline">
-              Dashboard
-            </span>
+            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 hidden sm:block" />
+            {/* Dynamic Section & Title Breadcrumb */}
+            <HeaderTitle />
           </div>
 
           {/* Global Header Search Bar */}
@@ -39,9 +38,6 @@ const MainLayout = async ({ children }) => {
               </Button>
             </Link>
             <ThemeToggle />
-            <SignedIn>
-              <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
-            </SignedIn>
           </div>
         </header>
 
