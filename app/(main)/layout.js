@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { checkUser } from '@/lib/checkUser'
 import CategorySidebar from '@/components/sidebar'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
@@ -8,8 +8,15 @@ import { HeaderTitle } from '@/components/header-title'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getUserAccounts } from '@/actions/dashboard'
+import { AccountSwitcher } from '@/components/account-switcher'
 
 export const dynamic = "force-dynamic";
+
+async function SwitcherContainer() {
+  const accounts = await getUserAccounts();
+  return <AccountSwitcher accounts={accounts} />;
+}
 
 const MainLayout = async ({ children }) => {
   await checkUser();
@@ -31,6 +38,10 @@ const MainLayout = async ({ children }) => {
           <HeaderSearch />
 
           <div className="flex items-center gap-3 shrink-0">
+            <Suspense fallback={<div className="h-8 w-24 bg-zinc-100 dark:bg-zinc-900 animate-pulse rounded-md border border-zinc-200 dark:border-zinc-800"></div>}>
+              <SwitcherContainer />
+            </Suspense>
+
             <Link href="/transaction/create">
               <Button size="sm" className="h-8 px-3 text-xs bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white font-medium shadow-xs">
                 <Plus className="h-3.5 w-3.5 mr-1" />

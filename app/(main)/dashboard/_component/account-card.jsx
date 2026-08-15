@@ -45,7 +45,8 @@ export function AccountCard({ account }) {
   };
 
   return (
-    <Card className="hover:border-zinc-400 dark:hover:border-zinc-700 transition-all border-zinc-200/80 dark:border-zinc-800 shadow-xs group relative">
+    <Card className="hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300 border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:shadow-md hover:-translate-y-1 group relative overflow-hidden bg-card">
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-zinc-100/50 dark:to-zinc-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <Link href={`/account/${id}`} className="flex-1">
           <CardTitle className="text-sm font-semibold capitalize cursor-pointer text-zinc-900 dark:text-zinc-100 hover:text-zinc-600">
@@ -61,19 +62,19 @@ export function AccountCard({ account }) {
 
       <Link href={`/account/${id}`} className="block">
         <CardContent>
-          <div className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">${parseFloat(balance).toFixed(2)}</div>
+          <div className="text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">${parseFloat(balance).toFixed(2)}</div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
             {type.charAt(0) + type.slice(1).toLowerCase()} Account
           </p>
         </CardContent>
 
-        <CardFooter className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-          <div className="flex items-center gap-1">
-            <ArrowUpRight className="h-3.5 w-3.5 text-emerald-500" />
+        <CardFooter className="flex justify-between pb-4">
+          <div className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-full text-xs font-semibold transition-colors">
+            <ArrowUpRight className="h-3.5 w-3.5" />
             <span>Income</span>
           </div>
-          <div className="flex items-center gap-1">
-            <ArrowDownRight className="h-3.5 w-3.5 text-rose-500" />
+          <div className="flex items-center gap-1.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 px-2 py-1 rounded-full text-xs font-semibold transition-colors">
+            <ArrowDownRight className="h-3.5 w-3.5" />
             <span>Expense</span>
           </div>
         </CardFooter>

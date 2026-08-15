@@ -10,7 +10,7 @@ import {
   Legend,
 } from "recharts";
 import { format } from "date-fns";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
 
 import {
   Select,
@@ -23,14 +23,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const COLORS = [
-  "#18181b",
-  "#27272a",
-  "#3f3f46",
-  "#52525b",
-  "#71717a",
-  "#a1a1aa",
-  "#d4d4d8",
+  "#f43f5e", // Rose
+  "#8b5cf6", // Violet
+  "#10b981", // Emerald
+  "#f59e0b", // Amber
+  "#3b82f6", // Blue
+  "#ec4899", // Pink
+  "#06b6d4", // Cyan
 ];
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 p-3 rounded-lg shadow-xl">
+        <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{payload[0].name}</p>
+        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          ${payload[0].value.toFixed(2)}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export function DashboardOverview({ accounts, transactions }) {
   const [selectedAccountId, setSelectedAccountId] = useState(
@@ -101,39 +115,52 @@ export function DashboardOverview({ accounts, transactions }) {
           </Select>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {recentTransactions.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">
-                No recent transactions
-              </p>
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                <Receipt className="h-10 w-10 mb-2 opacity-20" />
+                <p>No recent transactions</p>
+              </div>
             ) : (
               recentTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
                 >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {transaction.description || "Untitled Transaction"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(transaction.date), "PP")}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "p-2 rounded-full",
+                        transaction.type === "EXPENSE"
+                          ? "bg-rose-100/50 text-rose-500 dark:bg-rose-500/10 dark:text-rose-400"
+                          : "bg-emerald-100/50 text-emerald-500 dark:bg-emerald-500/10 dark:text-emerald-400"
+                      )}
+                    >
+                      {transaction.type === "EXPENSE" ? (
+                        <ArrowDownRight className="h-4 w-4" />
+                      ) : (
+                        <ArrowUpRight className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-none">
+                        {transaction.description || "Untitled Transaction"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(transaction.date), "PP")}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
-                        "flex items-center",
+                        "text-sm font-bold tracking-tight",
                         transaction.type === "EXPENSE"
-                          ? "text-red-500"
-                          : "text-green-500"
+                          ? "text-rose-500"
+                          : "text-emerald-500"
                       )}
                     >
-                      {transaction.type === "EXPENSE" ? (
-                        <ArrowDownRight className="mr-1 h-4 w-4" />
-                      ) : (
-                        <ArrowUpRight className="mr-1 h-4 w-4" />
-                      )}
+                      {transaction.type === "EXPENSE" ? "-" : "+"}
                       ${transaction.amount.toFixed(2)}
                     </div>
                   </div>
@@ -153,9 +180,10 @@ export function DashboardOverview({ accounts, transactions }) {
         </CardHeader>
         <CardContent className="p-0 pb-5">
           {pieChartData.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">
-              No expenses this month
-            </p>
+            <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+              <Receipt className="h-12 w-12 mb-4 opacity-20" />
+              <p>No expenses this month</p>
+            </div>
           ) : (
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -164,10 +192,12 @@ export function DashboardOverview({ accounts, transactions }) {
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
+                    innerRadius={60}
                     outerRadius={80}
+                    paddingAngle={5}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, value }) => `${name}: $${value.toFixed(2)}`}
+                    stroke="none"
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell
@@ -176,14 +206,7 @@ export function DashboardOverview({ accounts, transactions }) {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
-                    formatter={(value) => `$${value.toFixed(2)}`}
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "var(--radius)",
-                    }}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

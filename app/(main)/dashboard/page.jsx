@@ -1,7 +1,9 @@
 import CreateAccountDrawer from '@/components/create-account-drawer'
-import { DashboardOverview } from './_component/transaction-overview'
 import { Card, CardContent } from '@/components/ui/card'
 import React, { Suspense } from 'react'
+import { DashboardOverviewSkeleton } from '@/components/skeletons'
+
+import { DashboardOverview } from './_component/transaction-overview'
 import { Plus } from 'lucide-react'
 import { getDashboardData, getUserAccounts } from '@/actions/dashboard'
 import AccountCard from './_component/account-card'
@@ -28,7 +30,7 @@ async function DashboardPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-200 dark:border-zinc-800">
           <div>
-            <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight gradient-title">
               Financial Overview
             </h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -46,11 +48,7 @@ async function DashboardPage() {
         )}
 
         {/* Overview Analytics Charts */}
-        <Suspense fallback={
-          <Card className="p-8 text-center text-xs text-zinc-400 border-zinc-200 dark:border-zinc-800">
-            Loading analytics overview...
-          </Card>
-        }>
+        <Suspense fallback={<DashboardOverviewSkeleton />}>
           <DashboardOverview
             accounts={accounts}
             transactions={transactions || []}
@@ -59,7 +57,7 @@ async function DashboardPage() {
 
         {/* Accounts Section Header */}
         <div className="pt-4">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight gradient-title">
             Your Accounts
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
