@@ -1,12 +1,9 @@
-import CreateAccountDrawer from '@/components/create-account-drawer'
 import { Card, CardContent } from '@/components/ui/card'
 import React, { Suspense } from 'react'
 import { DashboardOverviewSkeleton } from '@/components/skeletons'
 
 import { DashboardOverview } from './_component/transaction-overview'
-import { Plus } from 'lucide-react'
 import { getDashboardData, getUserAccounts } from '@/actions/dashboard'
-import AccountCard from './_component/account-card'
 import { getCurrentBudget } from '@/actions/budget'
 import { BudgetProgress } from './_component/budget-progress'
 import { unstable_rethrow } from 'next/navigation'
@@ -54,30 +51,6 @@ async function DashboardPage() {
             transactions={transactions || []}
           />
         </Suspense>
-
-        {/* Accounts Section Header */}
-        <div className="pt-4">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-4 tracking-tight gradient-title">
-            Your Accounts
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <CreateAccountDrawer>
-              <Card className="hover:border-zinc-400 dark:hover:border-zinc-700 transition-all border-dashed border-zinc-300 dark:border-zinc-700 cursor-pointer min-h-[140px] flex items-center justify-center">
-                <CardContent className="flex flex-col items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 p-6">
-                  <div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-2">
-                    <Plus className="h-6 w-6" />
-                  </div>
-                  <p className="text-xs font-semibold uppercase tracking-wider">Add New Account</p>
-                </CardContent>
-              </Card>
-            </CreateAccountDrawer>
-
-            {accounts.length > 0 &&
-              accounts.map((account) => {
-                return <AccountCard key={account.id} account={account} />;
-              })}
-          </div>
-        </div>
       </div>
     );
   } catch (error) {

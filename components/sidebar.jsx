@@ -82,8 +82,8 @@ export function CategorySidebar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname?.startsWith("/account")}>
-                  <Link href="/dashboard" className="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
+                <SidebarMenuButton asChild isActive={pathname?.startsWith("/account") || pathname?.startsWith("/accounts")}>
+                  <Link href="/accounts" className="flex items-center justify-between px-2.5 py-2 text-xs font-semibold rounded-md text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors">
                     <div className="flex items-center gap-3">
                       <CreditCard className="h-4 w-4 text-zinc-500" />
                       <span>Accounts & Cards</span>
