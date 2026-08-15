@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import "./globals.css";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ConfirmProvider } from '@/hooks/use-confirm';
 
 export const metadata = {
   title: "Trakex - Personal Finance Manager",
@@ -19,8 +20,10 @@ export default function RootLayout({ children }) {
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
-            <Toaster position="top-right" richColors />
+            <ConfirmProvider>
+              {children}
+              <Toaster position="top-right" richColors />
+            </ConfirmProvider>
           </ThemeProvider>
         </body>
       </html>

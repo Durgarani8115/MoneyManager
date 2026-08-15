@@ -29,6 +29,7 @@ import useFetch from "@/hooks/use-fetch";
 import { deleteGoal } from "@/actions/goals";
 import { CreateGoalDrawer } from "@/components/create-goal-drawer";
 import { AddFundsModal } from "@/components/add-funds-modal";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export function GoalCard({ goal, onRefresh }) {
   const { id, name, targetAmount, currentAmount, targetDate, status, color } = goal;
@@ -200,37 +201,17 @@ export function GoalCard({ goal, onRefresh }) {
           </Link>
         </CardFooter>
 
-        {/* Delete Confirmation Overlay */}
-        {deleteConfirm && (
-          <div className="absolute inset-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm flex flex-col items-center justify-center gap-3 p-4 z-10 rounded-[inherit]">
-            <AlertTriangle className="h-7 w-7 text-rose-500" />
-            <div className="text-center">
-              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Delete "{name}"?</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                Your actual bank balances will not be affected.
-              </p>
-            </div>
-            <div className="flex gap-2 w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs"
-                onClick={() => setDeleteConfirm(false)}
-                disabled={deleteLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 text-xs bg-rose-600 hover:bg-rose-700 text-white"
-                onClick={handleDelete}
-                disabled={deleteLoading}
-              >
-                {deleteLoading ? "Deleting..." : "Confirm Delete"}
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteConfirm}
+          onOpenChange={setDeleteConfirm}
+          title={`Delete "${name}"?`}
+          description="Your actual bank balances will not be affected."
+          variant="destructive"
+          confirmLabel="Delete Goal"
+          onConfirm={handleDelete}
+          isLoading={deleteLoading}
+        />
       </Card>
 
       {/* Edit Drawer */}

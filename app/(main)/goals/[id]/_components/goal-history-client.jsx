@@ -30,12 +30,14 @@ import { toast } from "sonner";
 import useFetch from "@/hooks/use-fetch";
 import { deleteContribution, getGoalDetails } from "@/actions/goals";
 import { AddFundsModal } from "@/components/add-funds-modal";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function GoalHistoryClient({ goal: initialGoal }) {
   const [goal, setGoal] = useState(initialGoal);
   const [addFundsOpen, setAddFundsOpen] = useState(false);
 
   const { loading: deleteLoading, fn: deleteContribFn } = useFetch(deleteContribution);
+  const confirm = useConfirm();
 
   const refreshData = async () => {
     const res = await getGoalDetails(goal.id);
@@ -45,7 +47,13 @@ export function GoalHistoryClient({ goal: initialGoal }) {
   };
 
   const handleDeleteContribution = async (contribId) => {
-    if (!confirm("Are you sure you want to delete this contribution entry?")) return;
+    const ok = await confirm({
+      title: "Remove Contribution?",
+      description: "This contribution entry will be permanently removed from the audit log.",
+      variant: "destructive",
+      confirmLabel: "Remove Entry",
+    });
+    if (!ok) return;
     const res = await deleteContribFn(contribId);
     if (res?.success) {
       toast.success("Entry removed");

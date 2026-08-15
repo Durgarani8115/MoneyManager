@@ -11,10 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { CreateTripDrawer } from "@/components/create-trip-drawer";
 import { getUserTrips, deleteTrip } from "@/actions/trips";
 import { toast } from "sonner";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function TripsClient({ initialTrips = [] }) {
   const [trips, setTrips] = useState(initialTrips);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const confirm = useConfirm();
 
   const refreshTrips = async () => {
     const res = await getUserTrips();
@@ -26,7 +28,13 @@ export function TripsClient({ initialTrips = [] }) {
   const handleDeleteTrip = async (e, tripId) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this trip and its expenses?")) return;
+    const ok = await confirm({
+      title: "Delete Trip?",
+      description: "This will permanently delete the trip and all its expenses.",
+      variant: "destructive",
+      confirmLabel: "Delete Trip",
+    });
+    if (!ok) return;
 
     const res = await deleteTrip(tripId);
     if (res?.success) {

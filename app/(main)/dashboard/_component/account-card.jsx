@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, ArrowDownRight, MoreHorizontal, Pencil, Trash2, Star, AlertTriangle } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, MoreHorizontal, Pencil, Trash2, Star } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import useFetch from "@/hooks/use-fetch";
 import { updateDefaultAccount, deleteAccount } from "@/actions/accounts";
 import { EditAccountDrawer } from "@/components/edit-account-drawer";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export function AccountCard({ account }) {
   const { name, type, balance, id, isDefault } = account;
@@ -128,37 +129,17 @@ export function AccountCard({ account }) {
           </CardFooter>
         </Link>
 
-        {/* Inline Delete Confirmation */}
-        {deleteConfirm && (
-          <div className="absolute inset-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm flex flex-col items-center justify-center gap-3 p-4 z-10 rounded-[inherit]">
-            <AlertTriangle className="h-8 w-8 text-red-500" />
-            <div className="text-center">
-              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Delete "{name}"?</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                All transactions linked to this account will also be permanently deleted.
-              </p>
-            </div>
-            <div className="flex gap-2 w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs"
-                onClick={() => setDeleteConfirm(false)}
-                disabled={deleteLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 text-xs bg-red-600 hover:bg-red-700 text-white"
-                onClick={handleDelete}
-                disabled={deleteLoading}
-              >
-                {deleteLoading ? "Deleting..." : "Confirm Delete"}
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteConfirm}
+          onOpenChange={setDeleteConfirm}
+          title={`Delete "${name}"?`}
+          description="All transactions linked to this account will also be permanently deleted."
+          variant="destructive"
+          confirmLabel="Delete Account"
+          onConfirm={handleDelete}
+          isLoading={deleteLoading}
+        />
       </Card>
 
       {/* Edit Account Drawer */}
