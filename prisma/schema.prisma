@@ -15,6 +15,10 @@ model User {
   transactions  Transaction[]
   accounts      Account[]
   budgets       Budget[]
+  categoryBudgets CategoryBudget[]
+  goals         Goal[]
+  goalContributions GoalContribution[]
+  trips         Trip[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -62,7 +66,6 @@ model Transaction {
   @@map("transactions")
 }
 
-
 model Budget {
   id          String       @id @default(uuid())
   amount      Decimal
@@ -74,6 +77,20 @@ model Budget {
 
   @@index([userId])
   @@map("budgets")
+}
+
+model CategoryBudget {
+  id          String    @id @default(uuid())
+  category    String
+  amount      Decimal
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, category])
+  @@index([userId])
+  @@map("category_budgets")
 }
 
 enum TransactionType {
@@ -97,4 +114,81 @@ enum RecurringInterval {
   WEEKLY
   MONTHLY
   YEARLY
+}
+
+model Goal {
+  id            String      @id @default(uuid())
+  name          String
+  targetAmount  Decimal
+  currentAmount Decimal     @default(0)
+  targetDate    DateTime
+  color         String?     
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  contributions GoalContribution[]
+
+  @@index([userId])
+  @@map("goals")
+}
+
+model GoalContribution {
+  id             String   @id @default(uuid())
+  amount         Decimal  // Positive for addition, negative for withdrawal
+  idempotencyKey String   @unique // Prevents duplicate submissions
+  goalId         String
+  goal           Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  userId         String   // Security enforcement
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@index([goalId])
+  @@index([userId])
+  @@map("goal_contributions")
+}
+
+model Trip {
+  id          String      @id @default(uuid())
+  name        String
+  destination String
+  budget      Decimal
+  startDate   DateTime?
+  endDate     DateTime?
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  places      TripPlace[]
+  expenses    TripExpense[]
+
+  @@index([userId])
+  @@map("trips")
+}
+
+model TripPlace {
+  id            String   @id @default(uuid())
+  name          String
+  estimatedCost Decimal  @default(0)
+  visited       Boolean  @default(false)
+  tripId        String
+  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@index([tripId])
+  @@map("trip_places")
+}
+
+model TripExpense {
+  id          String   @id @default(uuid())
+  title       String
+  amount      Decimal
+  paidBy      String?  // e.g. "Me", "Friend 1", "Friend 2"
+  category    String   @default("other-expense")
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([tripId])
+  @@map("trip_expenses")
 }

@@ -68,6 +68,7 @@ const TransactionTable = ({ transactions }) => {
 
     const router = useRouter(); 
     const [selectedIds, setSelectedIds] = useState([]);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const[sortConfig, setSortConfig] = useState({
          field : "date",
          direction : "desc",
@@ -160,20 +161,23 @@ const handleSelectAll = () => {
    );
  };
 
-const handleBulkDelete = async ()=>{
-    if(
-        !window.confirm(
-            `Are you sure you want to delete ${selectedIds.length}  transactions?`
-        )
-    ) {
-        return; 
-    }
-    deleteFn(selectedIds);
+const handleBulkDelete = async () => {
+    setShowDeleteConfirm(true);
+};
+
+const handleConfirmDelete = async () => {
+    await deleteFn(selectedIds);
+    setShowDeleteConfirm(false);
+    setSelectedIds([]);
+};
+
+const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
 };
 
 useEffect(() => {
     if(deleted && !deleteLoading) {
-        toast.error("Transaction Deleted Successfully");
+        toast.success("Transactions deleted successfully");
     }
 },[deleted, deleteLoading]);
 
@@ -224,19 +228,18 @@ const handleClearFilter=() =>{
     <SelectValue placeholder="All Transactions" />
   </SelectTrigger>
   <SelectContent>
-    <SelectItem value="recurring">Recurrig Only</SelectItem>
+    <SelectItem value="recurring">Recurring Only</SelectItem>
     <SelectItem value="non-recurring">Non-recurring Only</SelectItem>
   </SelectContent>
 </Select>
 
 {selectedIds.length > 0 && (
-    <div>
-        <Button variant='destructive' size='sm' 
+    <Button variant='destructive' size='sm'
         onClick={handleBulkDelete}
-        >
-            <Trash className="h-4 w-4 mr-2" />
-            Delete Selected ({selectedIds.length})</Button>
-        </div>
+    >
+        <Trash className="h-4 w-4 mr-2" />
+        Delete ({selectedIds.length})
+    </Button>
 )}
 {(searchTerm || typeFilter || recuringFilter) && (
 
@@ -247,6 +250,22 @@ const handleClearFilter=() =>{
         </div>
         </div>
 
+        {/* Inline Delete Confirmation Banner */}
+        {showDeleteConfirm && (
+            <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                    Delete {selectedIds.length} transaction{selectedIds.length !== 1 ? 's' : ''}? This cannot be undone.
+                </p>
+                <div className="flex gap-2 shrink-0">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleCancelDelete} disabled={deleteLoading}>
+                        Cancel
+                    </Button>
+                    <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={handleConfirmDelete} disabled={deleteLoading}>
+                        {deleteLoading ? "Deleting..." : "Confirm Delete"}
+                    </Button>
+                </div>
+            </div>
+        )}
 
         {/* transaction */}
             <div className="rounded-md border">
@@ -291,7 +310,7 @@ const handleClearFilter=() =>{
                                     
                                 </div>
                             </TableHead>
-                            <TableHead>Recuring</TableHead>
+                            <TableHead>Recurring</TableHead>
                             <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -299,8 +318,8 @@ const handleClearFilter=() =>{
                     <TableBody>
                         {filteredAndSortedTransactions.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className='text-center text-muted-foreground'>
-                                    NoTransaction Found
+                                <TableCell colSpan={7} className='text-center text-muted-foreground py-8'>
+                                    No transactions found.
                                 </TableCell>
                             </TableRow>
                         ) : (

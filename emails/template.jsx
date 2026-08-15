@@ -115,7 +115,7 @@ export default function EmailTemplate({
             )}
 
             <Text style={styles.footer}>
-              Thank you for using Wealth. Keep tracking your finances for better
+              Thank you for using Trakex. Keep tracking your finances for better
               financial health!
             </Text>
           </Container>

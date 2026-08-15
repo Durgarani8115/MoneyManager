@@ -10,6 +10,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getUserAccounts } from '@/actions/dashboard'
 import { AccountSwitcher } from '@/components/account-switcher'
+import { AiChatButton } from '@/components/ai-chat-button'
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,7 @@ const MainLayout = async ({ children }) => {
           </div>
         </main>
       </SidebarInset>
+      <AiChatButton />
     </SidebarProvider>
   )
 }
