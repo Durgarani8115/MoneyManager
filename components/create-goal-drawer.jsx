@@ -166,7 +166,7 @@ export function CreateGoalDrawer({ goal, open, onOpenChange, onSuccess }) {
                   <button
                     key={c}
                     type="button"
-                    className={`w-7 h-7 rounded-full transition-all ₹{
+                    className={`w-7 h-7 rounded-full transition-all ${
                       selectedColor === c
                         ? "ring-2 ring-offset-2 ring-zinc-900 dark:ring-zinc-100 scale-110"
                         : "hover:scale-105"

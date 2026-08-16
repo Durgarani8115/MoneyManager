@@ -358,7 +358,7 @@ export function TripDetailClient({ trip: initialTrip }) {
               onClick={handleGenerateAiPlan}
               disabled={aiLoading}
             >
-              <Sparkles className={`h-3.5 w-3.5 ₹{aiLoading ? "animate-spin" : ""}`} />
+              <Sparkles className={`h-3.5 w-3.5 ${aiLoading ? "animate-spin" : ""}`} />
               {aiLoading ? "AI Planning..." : "Generate AI Trip Plan"}
             </Button>
           </div>
@@ -535,7 +535,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                       <Square className="h-4 w-4 text-zinc-400 shrink-0" />
                     )}
                     <span
-                      className={`truncate ₹{
+                      className={`truncate ${
                         place.visited
                           ? "line-through text-zinc-400 dark:text-zinc-500"
                           : "text-zinc-900 dark:text-zinc-100"
@@ -705,7 +705,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                                       upiId={s.friendUpiId}
                                       name={s.friendName}
                                       amount={s.amount}
-                                      note={`Split for ₹{exp.title}`}
+                                      note={`Split for ${exp.title}`}
                                       size="xs"
                                     />
                                   )}
@@ -714,7 +714,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                                     <Button
                                       size="xs"
                                       variant={s.settled ? "outline" : "default"}
-                                      className={`h-6 text-[10px] ₹{
+                                      className={`h-6 text-[10px] ${
                                         s.settled
                                           ? "text-emerald-600 border-emerald-300 dark:border-emerald-800"
                                           : "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
@@ -906,12 +906,12 @@ export function TripDetailClient({ trip: initialTrip }) {
                           onClick={() => toggleParticipant(friend.id)}
                         >
                           <Checkbox
-                            id={`part-₹{friend.id}`}
+                            id={`part-${friend.id}`}
                             checked={selectedFriendIds.includes(friend.id)}
                             onCheckedChange={() => toggleParticipant(friend.id)}
                           />
                           <label
-                            htmlFor={`part-₹{friend.id}`}
+                            htmlFor={`part-${friend.id}`}
                             className="text-xs font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer flex-1 flex items-center justify-between"
                           >
                             <span>{friend.name}</span>

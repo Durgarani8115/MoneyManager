@@ -186,7 +186,7 @@ export function GoalHistoryClient({ goal: initialGoal }) {
                         </TableCell>
                         <TableCell className="text-xs">
                           <span
-                            className={`inline-flex items-center gap-1 font-semibold ₹{
+                            className={`inline-flex items-center gap-1 font-semibold ${
                               isAddition
                                 ? "text-emerald-600 dark:text-emerald-400"
                                 : "text-rose-600 dark:text-rose-400"
@@ -201,13 +201,13 @@ export function GoalHistoryClient({ goal: initialGoal }) {
                           </span>
                         </TableCell>
                         <TableCell
-                          className={`text-xs text-right font-bold ₹{
+                          className={`text-xs text-right font-bold ${
                             isAddition
                               ? "text-emerald-600 dark:text-emerald-400"
                               : "text-rose-600 dark:text-rose-400"
                           }`}
                         >
-                          {isAddition ? "+" : "-"}${Math.abs(c.amount).toFixed(2)}
+                          {isAddition ? "+" : "-"}₹{Math.abs(c.amount).toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <Button

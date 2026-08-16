@@ -76,7 +76,7 @@ export function AddFundsModal({ goal, open, onOpenChange, onSuccess }) {
           <div className="flex rounded-lg border border-zinc-200 dark:border-zinc-800 p-1 bg-zinc-50 dark:bg-zinc-900">
             <button
               type="button"
-              className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 ₹{
+              className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                 !isWithdraw
                   ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -88,7 +88,7 @@ export function AddFundsModal({ goal, open, onOpenChange, onSuccess }) {
             </button>
             <button
               type="button"
-              className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 ₹{
+              className={`flex-1 text-xs font-semibold py-1.5 rounded-md transition-all flex items-center justify-center gap-1.5 ${
                 isWithdraw
                   ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -133,7 +133,7 @@ export function AddFundsModal({ goal, open, onOpenChange, onSuccess }) {
             <Button
               type="submit"
               size="sm"
-              className={`flex-1 text-xs font-semibold text-white ₹{
+              className={`flex-1 text-xs font-semibold text-white ${
                 isWithdraw
                   ? "bg-rose-600 hover:bg-rose-700"
                   : "bg-emerald-600 hover:bg-emerald-700"

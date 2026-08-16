@@ -333,7 +333,7 @@ export function AddTransactionForm({
               onClick={handleAiPredict}
               disabled={aiPredicting}
             >
-              <Sparkles className={`h-3 w-3 ₹{aiPredicting ? "animate-spin" : ""}`} />
+              <Sparkles className={`h-3 w-3 ${aiPredicting ? "animate-spin" : ""}`} />
               {aiPredicting ? "Predicting..." : "Auto-Categorize with AI"}
             </Button>
           )}
