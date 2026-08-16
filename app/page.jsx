@@ -6,115 +6,149 @@ import { Button } from "@/components/ui/button";
 import { featuresData, howItWorksData, statsData, testimonialsData } from "@/data/landing";
 import { Card, CardContent } from "@/components/ui/card";
 
+// Production React Bits Landing Components
+import BentoFeatures from "@/components/landing/bento-features";
+import BenefitsComparison from "@/components/landing/benefits-comparison";
+import SavingsCalculator from "@/components/landing/savings-calculator";
+import InteractiveDemoTabs from "@/components/landing/interactive-demo-tabs";
+import FaqSection from "@/components/landing/faq-section";
+import SpotlightCard from "@/components/ui/react-bits/spotlight-card";
+import AnimatedCounter from "@/components/ui/react-bits/animated-counter";
+import ShinyButton from "@/components/ui/react-bits/shiny-button";
+import AnimatedGradientText from "@/components/ui/react-bits/animated-gradient-text";
+
 export default function Home() {
     return (
-        <div>
+        <div className="min-h-screen bg-background text-foreground selection:bg-emerald-500 selection:text-white">
             <Header />
-            <div className="pt-32">
+            <div className="pt-24 md:pt-28">
+                
+                {/* 1. React Bits Enhanced Hero Section */}
                 <HeroSection />
-                <section className="py-20 bg-zinc-50/80 dark:bg-zinc-900/50 border-y border-zinc-200/60 dark:border-zinc-800">
+
+                {/* 2. Key Statistics Bar with Animated React Bits Counters */}
+                <section className="py-16 bg-zinc-50/80 dark:bg-zinc-900/50 border-y border-zinc-200/80 dark:border-zinc-800">
                     <div className="container mx-auto px-4">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                            {statsData.map((statsData, index) => {
-                                return (
-                                    <div key={index} className="text-center">
-                                        <div className="text-4xl font-extrabold text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">{statsData.value}</div>
-                                        <div className="text-zinc-600 dark:text-zinc-400 text-sm font-medium">{statsData.label}</div>
-                                    </div>
-                                );
-                            })}
+                            <div className="text-center space-y-1">
+                                <div className="text-3xl md:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+                                    <AnimatedCounter value="50" suffix="K+" />
+                                </div>
+                                <div className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 font-semibold">Active Users</div>
+                            </div>
+                            <div className="text-center space-y-1">
+                                <div className="text-3xl md:text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                                    <AnimatedCounter value="2" prefix="$" suffix="B+" />
+                                </div>
+                                <div className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 font-semibold">Transactions Tracked</div>
+                            </div>
+                            <div className="text-center space-y-1">
+                                <div className="text-3xl md:text-5xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
+                                    <AnimatedCounter value="99.9" suffix="%" />
+                                </div>
+                                <div className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 font-semibold">Uptime Guarantee</div>
+                            </div>
+                            <div className="text-center space-y-1">
+                                <div className="text-3xl md:text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                                    <AnimatedCounter value="4.9" suffix="/5" />
+                                </div>
+                                <div className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 font-semibold">User Rating</div>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <section id="features" className="py-20">
-                    <div className="container mx-auto px-4">
-                        <h2 className="text-3xl font-extrabold text-center mb-12 text-zinc-900 dark:text-zinc-100 tracking-tight">
-                            Everything you need to manage your finances
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {featuresData.map((feature, index) => (
-                                <Card key={index} className='p-6 border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-400 transition-colors shadow-xs'>
-                                    <CardContent className="space-y-4 pt-4">
-                                        <div className="p-3 w-fit rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
-                                            {feature.icon}
-                                        </div>
-                                        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{feature.title}</h3>
-                                        <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-sm">{feature.description}</p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+                {/* 3. React Bits Asymmetric Bento Features Grid */}
+                <BentoFeatures />
 
-                <section className="py-20 bg-zinc-50/80 dark:bg-zinc-900/50 border-y border-zinc-200/60 dark:border-zinc-800">
+                {/* 4. Interactive Try-Before-Sign-Up Demo Sandbox */}
+                <InteractiveDemoTabs />
+
+                {/* 5. Benefits Comparison (Traditional vs MoneyManager AI) */}
+                <BenefitsComparison />
+
+                {/* 6. Interactive ROI Savings Calculator */}
+                <SavingsCalculator />
+
+                {/* 7. How It Works Step-by-Step */}
+                <section className="py-20 bg-zinc-50/80 dark:bg-zinc-900/50 border-y border-zinc-200/80 dark:border-zinc-800">
                     <div className="container mx-auto px-4">
                         <h2 className="text-3xl font-extrabold text-center mb-16 text-zinc-900 dark:text-zinc-100 tracking-tight">
-                            How It Works
+                            Simple 3-Step Onboarding
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {howItWorksData.map((step, index) => (
-                                <div key={index} className="text-center">
-                                    <div className="w-16 h-16 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                                <SpotlightCard key={index} className="p-8 text-center space-y-4">
+                                    <div className="w-16 h-16 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-2xl flex items-center justify-center mx-auto shadow-lg font-bold">
                                         {step.icon}
                                     </div>
-                                    <h3 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">{step.title}</h3>
+                                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{step.title}</h3>
                                     <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">{step.description}</p>
-                                </div>
+                                </SpotlightCard>
                             ))}
                         </div>
                     </div>
                 </section>
 
+                {/* 8. User Testimonials Grid */}
                 <section className="py-20">
                     <div className="container mx-auto px-4">
                         <h2 className="text-3xl font-extrabold text-center mb-12 text-zinc-900 dark:text-zinc-100 tracking-tight">
-                            What Our Users Say
+                            Loved by Finance Conscious Users
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {testimonialsData.map((testimonial, index) => (
-                                <Card key={index} className='p-6 border-zinc-200/80 dark:border-zinc-800 shadow-xs'>
-                                    <CardContent className="pt-4">
-                                        <div className="flex items-center mb-4">
+                                <SpotlightCard key={index} className="p-6">
+                                    <CardContent className="p-0 space-y-4">
+                                        <div className="flex items-center gap-3">
                                             <Image
                                                 src={testimonial.image}
                                                 alt={testimonial.name}
-                                                width={50} height={50}
-                                                className="rounded-full border border-zinc-200 dark:border-zinc-700" />
-                                            <div className="ml-4">
-                                                <div className="font-semibold text-zinc-900 dark:text-zinc-100">{testimonial.name}</div>
-                                                <div className="text-sm text-zinc-500 dark:text-zinc-400">{testimonial.role}</div>
+                                                width={48}
+                                                height={48}
+                                                className="rounded-full border border-zinc-200 dark:border-zinc-700 object-cover"
+                                            />
+                                            <div>
+                                                <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">{testimonial.name}</div>
+                                                <div className="text-xs text-zinc-500">{testimonial.role}</div>
                                             </div>
                                         </div>
                                         <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed italic">&ldquo;{testimonial.quote}&rdquo;</p>
                                     </CardContent>
-                                </Card>
+                                </SpotlightCard>
                             ))}
                         </div>
                     </div>
                 </section>
 
-                <section className="py-20 bg-zinc-950 text-white border-t border-zinc-800">
-                    <div className="container mx-auto px-4 text-center">
-                        <h2 className="text-3xl font-extrabold text-center mb-4 tracking-tight">
-                            Ready to take control of your finances?
+                {/* 9. FAQ Section */}
+                <FaqSection />
+
+                {/* 10. Final Call To Action Banner */}
+                <section className="py-24 bg-zinc-950 text-white border-t border-zinc-800 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.25),rgba(255,255,255,0))]" />
+                    <div className="container mx-auto px-4 text-center relative z-10 space-y-6 max-w-3xl">
+                        <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white">
+                            Ready to Take Control of Your <AnimatedGradientText gradient="from-white via-emerald-400 to-zinc-300">Finances</AnimatedGradientText>?
                         </h2>
-                        <p className="text-zinc-400 max-w-xl mx-auto text-sm leading-relaxed">
-                            Join thousands of satisfied users who are already managing their finances smarter with Trakex.
+                        <p className="text-zinc-400 text-base md:text-lg leading-relaxed max-w-xl mx-auto">
+                            Join thousands of smart users managing accounts, scanning receipts, and saving money effortlessly with MoneyManager.
                         </p>
-                        <Link href="/dashboard">
-                            <Button size="lg"
-                                className="mt-8 px-8 bg-zinc-100 text-zinc-900 hover:bg-white border border-zinc-200 shadow-lg font-semibold transition-all">
-                                Start Free Trial
-                            </Button>
-                        </Link>
+                        <div className="pt-4 flex justify-center">
+                            <Link href="/sign-up">
+                                <ShinyButton variant="primary" className="py-4 px-10 text-base">
+                                    Start Free Trial Now
+                                </ShinyButton>
+                            </Link>
+                        </div>
                     </div>
                 </section>
 
+                {/* Footer */}
                 <footer className="bg-zinc-950 border-t border-zinc-800 py-12 text-zinc-400">
-                    <div className="container mx-auto text-center px-4">
-                        <p className="text-sm tracking-wide">Made with ❤️ by Durga</p>
+                    <div className="container mx-auto text-center px-4 space-y-2">
+                        <div className="text-lg font-extrabold text-white">Trakex MoneyManager</div>
+                        <p className="text-xs tracking-wide text-zinc-500">Made with ❤️ by Durga • Intelligent Financial Freedom</p>
                     </div>
                 </footer>
             </div>

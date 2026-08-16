@@ -21,7 +21,7 @@ export async function predictCategory(description) {
     }
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const categoriesList = defaultCategories
       .filter((c) => c.type === "EXPENSE")
@@ -91,7 +91,7 @@ export async function getDashboardAIInsights() {
       }, {});
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
       Analyze this user's current month financial summary and provide 3 short, friendly, actionable insights (max 1-2 sentences each).
@@ -165,7 +165,7 @@ export async function chatWithAIAdvisor(messages) {
     `;
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const systemPrompt = `
       You are Trakex AI — an expert, friendly personal finance advisor. 
@@ -209,7 +209,7 @@ export async function parseVoiceTransaction(transcript) {
       .join(", ");
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
       You are an AI speech parser for a financial app. Convert this spoken text into structured JSON.

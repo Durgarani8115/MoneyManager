@@ -428,7 +428,7 @@ export async function generateAiTripPlan(tripId) {
     if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const totalBudget = parseFloat(trip.budget);
     const currentExpensesSum = trip.expenses.reduce(

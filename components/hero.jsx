@@ -1,68 +1,160 @@
 "use client";
-import { useRef, useEffect } from "react";
-import React from "react";
+
+import React, { useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { Button } from "./ui/button";
+import ShinyButton from "./ui/react-bits/shiny-button";
+import TiltedCard from "./ui/react-bits/tilted-card";
+import AnimatedGradientText from "./ui/react-bits/animated-gradient-text";
+import BackgroundBeams from "./ui/react-bits/background-beams";
+import {
+  Sparkles,
+  ArrowRight,
+  Receipt,
+  CheckCircle2,
+  PieChart,
+  Wallet,
+  Play,
+} from "lucide-react";
 
 const HeroSection = () => {
-    const imageref = useRef();
-    useEffect(() => {
-        const imageElement = imageref.current;
-        const handleScroll = () => {
-            const scrollPostion = window.scrollY;
-            const scrollThreshold = 100;
-            if (scrollPostion > scrollThreshold) {
-                imageElement.classList.add("scrolled");
-            } else {
-                imageElement.classList.remove("scrolled");
-            }
-        };
-        window.addEventListener("scroll", handleScroll);
+  const imageRef = useRef(null);
 
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+  useEffect(() => {
+    const imageElement = imageRef.current;
+    if (!imageElement) return;
 
-    return (
-        <div className="pb-20 px-4">
-            <div className="container mx-auto text-center">
-                <h1 className="text-4xl md:text-7xl lg:text-[90px] pb-6 gradient-title font-extrabold mb-4 tracking-tight">
-                    Take Control of Your Money <br /> with Money Manager
-                </h1>
-                <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    A smart personal finance dashboard to track accounts, record income
-                    and expenses, manage monthly budgets, and stay on top of recurring
-                    transactions with AI-assisted receipt scanning.
-                </p>
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const scrollThreshold = 100;
+      if (scrollPosition > scrollThreshold) {
+        imageElement.classList.add("scrolled");
+      } else {
+        imageElement.classList.remove("scrolled");
+      }
+    };
 
-                <div className="flex justify-center space-x-4">
-                    <Link href="/dashboard">
-                        <Button size="lg" className="px-8 bg-zinc-900 text-white hover:bg-zinc-800 border border-zinc-800 shadow-md transition-colors">
-                            Get started
-                        </Button>
-                    </Link>
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-                    <Link href="#features">
-                        <Button size="lg" variant="outline" className="px-8 border-zinc-300 text-zinc-800 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200">
-                            Learn more
-                        </Button>
-                    </Link>
-                </div>
-                <div className="hero-image-wrapper mt-16">
-                    <div ref={imageref} className="hero-image">
-                        <Image
-                            src='/banner.jpeg'
-                            width={1280}
-                            height={720}
-                            alt="Dashboard Preview"
-                            className="rounded-lg shadow-2xl border border-zinc-200 dark:border-zinc-800 mx-auto"
-                            priority
-                        />
-                    </div>
-                </div>
-            </div>
+  return (
+    <section className="relative pt-12 pb-20 px-4 overflow-hidden">
+      {/* React Bits Ambient Beams */}
+      <BackgroundBeams />
+
+      <div className="container mx-auto text-center relative z-10">
+        
+        {/* Status Pill Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold tracking-wide mb-6 shadow-xs animate-pulse">
+          <Sparkles className="h-3.5 w-3.5" />
+          <span> Powered by Gemini AI • Smart Financial Management 2.0</span>
         </div>
-    );
+
+        {/* Hero Title */}
+        <h1 className="text-4xl md:text-7xl lg:text-[84px] pb-4 font-black tracking-tight text-zinc-900 dark:text-white leading-[1.1]">
+          Master Your Money <br className="hidden sm:inline" />
+          with <AnimatedGradientText>Intelligent Control</AnimatedGradientText>
+        </h1>
+
+        {/* Hero Subtitle */}
+        <p className="text-lg md:text-xl text-zinc-600 dark:text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed font-normal">
+          A smart personal finance dashboard to track accounts, record income & expenses, manage monthly budgets, and stay on top of recurring transactions with AI receipt scanning.
+        </p>
+
+        {/* Hero Action CTAs */}
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+          <SignedIn>
+            <Link href="/dashboard">
+              <ShinyButton variant="primary" className="w-full sm:w-auto text-base py-3.5 px-8">
+                Go to Dashboard
+                <ArrowRight className="h-4 w-4 text-emerald-400" />
+              </ShinyButton>
+            </Link>
+          </SignedIn>
+
+          <SignedOut>
+            <Link href="/sign-up">
+              <ShinyButton variant="primary" className="w-full sm:w-auto text-base py-3.5 px-8">
+                Get Started Free
+                <ArrowRight className="h-4 w-4 text-emerald-400" />
+              </ShinyButton>
+            </Link>
+          </SignedOut>
+
+          <Link href="#features">
+            <ShinyButton variant="secondary" className="w-full sm:w-auto text-base py-3.5 px-8">
+              Explore Features
+            </ShinyButton>
+          </Link>
+        </div>
+
+        {/* 3D Tilted Hero Interactive Showcase */}
+        <div className="hero-image-wrapper mt-16 max-w-5xl mx-auto">
+          <TiltedCard maxTilt={8} scaleOnHover={1.01}>
+            <div ref={imageRef} className="hero-image relative group rounded-2xl overflow-hidden shadow-2xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-950">
+              
+              {/* Dashboard Preview Banner Image */}
+              <Image
+                src="/banner.jpeg"
+                width={1280}
+                height={720}
+                alt="MoneyManager Dashboard Preview"
+                className="w-full h-auto object-cover rounded-2xl border border-zinc-800"
+                priority
+              />
+
+              {/* Floating Pill 1: Top Right AI Receipt Badge */}
+              <div className="absolute top-6 right-6 hidden md:flex items-center gap-3 p-3.5 rounded-xl bg-zinc-950/90 text-white border border-emerald-500/40 backdrop-blur-xl shadow-xl animate-bounce duration-[3000ms]">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Receipt className="h-4 w-4" />
+                </div>
+                <div className="text-left text-xs">
+                  <div className="font-bold flex items-center gap-1 text-white">
+                    Starbucks Coffee
+                    <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                  </div>
+                  <div className="text-[11px] text-emerald-400 font-mono font-semibold">
+                    $4.75 • AI Scanned & Categorized
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Pill 2: Bottom Left Budget Alert Badge */}
+              <div className="absolute bottom-6 left-6 hidden md:flex items-center gap-3 p-3.5 rounded-xl bg-zinc-950/90 text-white border border-zinc-800 backdrop-blur-xl shadow-xl">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <PieChart className="h-4 w-4" />
+                </div>
+                <div className="text-left text-xs">
+                  <div className="font-bold text-white">Monthly Budget Safe</div>
+                  <div className="text-[11px] text-zinc-400 font-mono">
+                    68% Used • ₹34,000 Remaining
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating Pill 3: Bottom Right Account Balance Badge */}
+              <div className="absolute bottom-6 right-6 hidden lg:flex items-center gap-3 p-3.5 rounded-xl bg-zinc-950/90 text-white border border-zinc-800 backdrop-blur-xl shadow-xl">
+                <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Wallet className="h-4 w-4" />
+                </div>
+                <div className="text-left text-xs">
+                  <div className="font-bold text-white">Total Net Worth</div>
+                  <div className="text-[11px] text-emerald-400 font-mono font-bold">
+                    ₹2,45,000 (+12.4%)
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </TiltedCard>
+        </div>
+
+      </div>
+    </section>
+  );
 };
 
 export default HeroSection;
