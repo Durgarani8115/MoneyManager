@@ -64,7 +64,7 @@ export async function createFriend(data) {
     });
 
     revalidatePath("/friends");
-    revalidatePath("/trips");
+    revalidatePath("/trips", "layout");
 
     return { success: true, data: friend };
   } catch (error) {
@@ -107,8 +107,27 @@ export async function updateFriend(friendId, data) {
       },
     });
 
+    // Sync unsettled split entries with the new name/UPI.
+    // Settled entries are intentionally left unchanged — they represent
+    // a historical record of what UPI was used at the time of payment.
+    if (
+      existing.name !== name ||
+      existing.upiId !== upiId
+    ) {
+      await db.expenseSplitEntry.updateMany({
+        where: {
+          friendId: friendId,
+          settled: false,   // ← only update PENDING payments
+        },
+        data: {
+          friendName: name,
+          friendUpiId: upiId,
+        },
+      });
+    }
+
     revalidatePath("/friends");
-    revalidatePath("/trips");
+    revalidatePath("/trips", "layout");
 
     return { success: true, data: updated };
   } catch (error) {
@@ -135,7 +154,7 @@ export async function deleteFriend(friendId) {
     await db.friend.delete({ where: { id: friendId } });
 
     revalidatePath("/friends");
-    revalidatePath("/trips");
+    revalidatePath("/trips", "layout");
 
     return { success: true };
   } catch (error) {

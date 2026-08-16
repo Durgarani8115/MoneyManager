@@ -45,10 +45,12 @@ import {
 } from "@/actions/trips";
 import { getUserFriends } from "@/actions/friends";
 import { UpiPayButton } from "@/components/upi-pay-button";
+import { useConfirm } from "@/hooks/use-confirm";
 
 export function TripDetailClient({ trip: initialTrip }) {
   const [trip, setTrip] = useState(initialTrip);
   const [friends, setFriends] = useState([]);
+  const confirm = useConfirm();
 
   // Modals state
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
@@ -183,8 +185,19 @@ export function TripDetailClient({ trip: initialTrip }) {
   };
 
   // Delete Expense
-  const handleDeleteExpense = async (expId) => {
-    await deleteExpFn(expId);
+  const handleDeleteExpense = async (exp) => {
+    const hasUnsettled = exp.splits && exp.splits.some((s) => !s.settled);
+    if (hasUnsettled) {
+      const ok = await confirm({
+        title: `Delete "${exp.title}"?`,
+        description:
+          "This expense has pending unsettled splits with friends. Deleting it will permanently remove these split records.",
+        variant: "destructive",
+        confirmLabel: "Delete Expense",
+      });
+      if (!ok) return;
+    }
+    await deleteExpFn(exp.id);
     refreshTrip();
   };
 
@@ -197,6 +210,15 @@ export function TripDetailClient({ trip: initialTrip }) {
     } else {
       toast.error(res?.error || "Failed to update settlement state");
     }
+  };
+
+  // Bulk Settle All for a Friend
+  const handleSettleAllForFriend = async (unsettledSplits) => {
+    for (const s of unsettledSplits) {
+      await toggleSettledFn(s.id);
+    }
+    toast.success("Splits marked as settled!");
+    refreshTrip();
   };
 
   // Toggle Expanded Expense Card
@@ -232,9 +254,10 @@ export function TripDetailClient({ trip: initialTrip }) {
     if (exp.splits && exp.splits.length > 0) {
       exp.splits.forEach((split) => {
         if (split.friendName !== "Me") {
-          const key = split.friendName;
+          const key = split.friendId ? `id:${split.friendId}` : `name:${split.friendName}`;
           if (!friendBalanceMap[key]) {
             friendBalanceMap[key] = {
+              id: key,
               name: split.friendName,
               upiId: split.friendUpiId,
               totalOwed: 0,
@@ -394,7 +417,7 @@ export function TripDetailClient({ trip: initialTrip }) {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Object.values(friendBalanceMap).map((friendItem) => (
                 <div
-                  key={friendItem.name}
+                  key={friendItem.id}
                   className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xs space-y-2.5"
                 >
                   <div className="flex items-center justify-between">
@@ -433,9 +456,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                           size="sm"
                           variant="outline"
                           className="h-8 px-2 text-[11px] border-zinc-300 dark:border-zinc-700"
-                          onClick={() => {
-                            friendItem.unsettledSplits.forEach((s) => handleToggleSettled(s.id));
-                          }}
+                          onClick={() => handleSettleAllForFriend(friendItem.unsettledSplits)}
                         >
                           Mark Settled
                         </Button>
@@ -629,7 +650,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 text-zinc-400 hover:text-rose-600"
-                            onClick={() => handleDeleteExpense(exp.id)}
+                            onClick={() => handleDeleteExpense(exp)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>

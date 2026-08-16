@@ -5,6 +5,15 @@ import { requireDbUser } from "@/lib/checkUser";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+function serializePlace(p) {
+  if (!p) return null;
+  return {
+    ...p,
+    estimatedCost: parseFloat(p.estimatedCost || 0),
+    createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : null,
+  };
+}
+
 function serializeSplit(s) {
   if (!s) return null;
   return {
@@ -30,11 +39,7 @@ function serializeTrip(trip) {
   const budget = parseFloat(trip.budget);
 
   const places = trip.places
-    ? trip.places.map((p) => ({
-        ...p,
-        estimatedCost: parseFloat(p.estimatedCost),
-        createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : null,
-      }))
+    ? trip.places.map((p) => serializePlace(p))
     : [];
 
   const expenses = trip.expenses
@@ -200,7 +205,7 @@ export async function addTripPlace(tripId, data) {
 
     revalidatePath(`/trips/${tripId}`);
 
-    return { success: true, data: place };
+    return { success: true, data: serializePlace(place) };
   } catch (error) {
     return { success: false, error: error.message };
   }
@@ -228,7 +233,7 @@ export async function togglePlaceVisited(placeId) {
 
     revalidatePath(`/trips/${place.tripId}`);
 
-    return { success: true, data: updated };
+    return { success: true, data: serializePlace(updated) };
   } catch (error) {
     return { success: false, error: error.message };
   }
