@@ -19,6 +19,7 @@ model User {
   goals         Goal[]
   goalContributions GoalContribution[]
   trips         Trip[]
+  friends       Friend[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -116,6 +117,11 @@ enum RecurringInterval {
   YEARLY
 }
 
+enum SplitType {
+  NONE
+  EQUAL
+}
+
 model Goal {
   id            String      @id @default(uuid())
   name          String
@@ -185,10 +191,51 @@ model TripExpense {
   amount      Decimal
   paidBy      String?  // e.g. "Me", "Friend 1", "Friend 2"
   category    String   @default("other-expense")
+  splitType   SplitType @default(NONE)
+  splitCount  Int?
   tripId      String
   trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+  splits      ExpenseSplitEntry[]
 
   @@index([tripId])
   @@map("trip_expenses")
+}
+
+model Friend {
+  id        String   @id @default(uuid())
+  name      String
+  upiId     String?
+  phone     String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  splitEntries ExpenseSplitEntry[]
+
+  @@index([userId])
+  @@map("friends")
+}
+
+model ExpenseSplitEntry {
+  id          String   @id @default(uuid())
+  amount      Decimal
+  settled     Boolean  @default(false)
+  settledAt   DateTime?
+
+  friendName  String
+  friendUpiId String?
+
+  expenseId   String
+  expense     TripExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  friendId    String?
+  friend      Friend?     @relation(fields: [friendId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime    @default(now())
+
+  @@index([expenseId])
+  @@index([friendId])
+  @@map("expense_split_entries")
 }

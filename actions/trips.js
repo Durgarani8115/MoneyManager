@@ -5,6 +5,26 @@ import { requireDbUser } from "@/lib/checkUser";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+function serializeSplit(s) {
+  if (!s) return null;
+  return {
+    ...s,
+    amount: parseFloat(s.amount),
+    createdAt: s.createdAt ? new Date(s.createdAt).toISOString() : null,
+    settledAt: s.settledAt ? new Date(s.settledAt).toISOString() : null,
+  };
+}
+
+function serializeExpense(e) {
+  if (!e) return null;
+  return {
+    ...e,
+    amount: parseFloat(e.amount),
+    createdAt: e.createdAt ? new Date(e.createdAt).toISOString() : null,
+    splits: e.splits ? e.splits.map((s) => serializeSplit(s)) : [],
+  };
+}
+
 function serializeTrip(trip) {
   if (!trip) return null;
   const budget = parseFloat(trip.budget);
@@ -18,11 +38,7 @@ function serializeTrip(trip) {
     : [];
 
   const expenses = trip.expenses
-    ? trip.expenses.map((e) => ({
-        ...e,
-        amount: parseFloat(e.amount),
-        createdAt: e.createdAt ? new Date(e.createdAt).toISOString() : null,
-      }))
+    ? trip.expenses.map((e) => serializeExpense(e))
     : [];
 
   const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -52,7 +68,12 @@ export async function getUserTrips() {
       orderBy: { createdAt: "desc" },
       include: {
         places: true,
-        expenses: true,
+        expenses: {
+          include: {
+            splits: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -76,7 +97,10 @@ export async function getTripDetails(tripId) {
       where: { id: tripId, userId: user.id },
       include: {
         places: { orderBy: { createdAt: "asc" } },
-        expenses: { orderBy: { createdAt: "desc" } },
+        expenses: {
+          include: { splits: true },
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -118,7 +142,9 @@ export async function createTrip(data) {
       },
       include: {
         places: true,
-        expenses: true,
+        expenses: {
+          include: { splits: true },
+        },
       },
     });
 
@@ -234,7 +260,7 @@ export async function deleteTripPlace(placeId) {
 }
 
 /**
- * Add a trip split expense (who paid for what)
+ * Add a trip expense with optional equal splitting across participants
  */
 export async function addTripExpense(tripId, data) {
   try {
@@ -250,23 +276,106 @@ export async function addTripExpense(tripId, data) {
       throw new Error("Amount must be a positive number");
     }
 
-    const expense = await db.tripExpense.create({
-      data: {
-        title: data.title,
-        amount: amountFloat,
-        paidBy: data.paidBy || "Me",
-        category: data.category || "other-expense",
-        tripId,
-      },
+    const splitType = data.splitType === "EQUAL" ? "EQUAL" : "NONE";
+    const participants = Array.isArray(data.participants) ? data.participants : [];
+
+    if (splitType === "EQUAL" && participants.length === 0) {
+      throw new Error("Please select at least 1 participant to split with");
+    }
+
+    const expense = await db.$transaction(async (tx) => {
+      const createdExpense = await tx.tripExpense.create({
+        data: {
+          title: data.title,
+          amount: amountFloat,
+          paidBy: data.paidBy || "Me",
+          category: data.category || "other-expense",
+          splitType,
+          splitCount: splitType === "EQUAL" ? participants.length : null,
+          tripId,
+        },
+      });
+
+      if (splitType === "EQUAL" && participants.length > 0) {
+        // Integer math in paise to prevent rounding errors
+        const totalCents = Math.round(amountFloat * 100);
+        const count = participants.length;
+        const baseCents = Math.floor(totalCents / count);
+        const remainderCents = totalCents % count;
+
+        const splitsData = participants.map((p, index) => {
+          const personCents = baseCents + (index < remainderCents ? 1 : 0);
+          const personAmount = personCents / 100;
+          const isMe = !p.friendId || p.friendId === "me";
+
+          return {
+            amount: personAmount,
+            settled: isMe, // "Me" portion is marked auto-settled
+            settledAt: isMe ? new Date() : null,
+            friendName: p.friendName || (isMe ? "Me" : "Friend"),
+            friendUpiId: p.friendUpiId || null,
+            expenseId: createdExpense.id,
+            friendId: isMe ? null : p.friendId,
+          };
+        });
+
+        await tx.expenseSplitEntry.createMany({
+          data: splitsData,
+        });
+      }
+
+      return await tx.tripExpense.findUnique({
+        where: { id: createdExpense.id },
+        include: { splits: true },
+      });
     });
 
     revalidatePath(`/trips/${tripId}`);
 
-    return { success: true, data: expense };
+    return { success: true, data: serializeExpense(expense) };
   } catch (error) {
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Toggle settled state for a split entry
+ */
+export async function toggleSplitSettled(splitEntryId) {
+  try {
+    const user = await requireDbUser();
+
+    const entry = await db.expenseSplitEntry.findUnique({
+      where: { id: splitEntryId },
+      include: {
+        expense: {
+          include: { trip: true },
+        },
+      },
+    });
+
+    if (!entry || entry.expense.trip.userId !== user.id) {
+      throw new Error("Split entry not found");
+    }
+
+    const nextSettled = !entry.settled;
+
+    const updated = await db.expenseSplitEntry.update({
+      where: { id: splitEntryId },
+      data: {
+        settled: nextSettled,
+        settledAt: nextSettled ? new Date() : null,
+      },
+    });
+
+    revalidatePath(`/trips/${entry.expense.tripId}`);
+
+    return { success: true, data: serializeSplit(updated) };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
 
 /**
  * Delete trip expense

@@ -28,6 +28,7 @@ import {
   ArrowLeftRight,
   Target,
   Plane,
+  Users,
 } from "lucide-react";
 
 const navItems = [
@@ -49,6 +50,12 @@ const navItems = [
     href: "/trips",
     icon: Plane,
     isActive: (p) => p?.startsWith("/trips") || p?.startsWith("/trip/"),
+  },
+  {
+    label: "Friends & Splits",
+    href: "/friends",
+    icon: Users,
+    isActive: (p) => p?.startsWith("/friends"),
   },
   {
     label: "Financial Goals",

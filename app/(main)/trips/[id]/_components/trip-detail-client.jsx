@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -12,14 +12,18 @@ import {
   Users,
   Sparkles,
   AlertTriangle,
-  Loader2,
-  DollarSign,
+  CheckCircle2,
+  Smartphone,
+  ChevronDown,
+  ChevronUp,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -37,10 +41,14 @@ import {
   addTripExpense,
   deleteTripExpense,
   generateAiTripPlan,
+  toggleSplitSettled,
 } from "@/actions/trips";
+import { getUserFriends } from "@/actions/friends";
+import { UpiPayButton } from "@/components/upi-pay-button";
 
 export function TripDetailClient({ trip: initialTrip }) {
   const [trip, setTrip] = useState(initialTrip);
+  const [friends, setFriends] = useState([]);
 
   // Modals state
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
@@ -52,6 +60,13 @@ export function TripDetailClient({ trip: initialTrip }) {
   const [expAmount, setExpAmount] = useState("");
   const [expPaidBy, setExpPaidBy] = useState("Me");
 
+  // Split state
+  const [enableSplit, setEnableSplit] = useState(false);
+  const [selectedFriendIds, setSelectedFriendIds] = useState([]); // array of friend IDs (plus "me")
+
+  // Expanded expense IDs state
+  const [expandedExpenseIds, setExpandedExpenseIds] = useState([]);
+
   // AI Plan state
   const [aiPlan, setAiPlan] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -61,6 +76,20 @@ export function TripDetailClient({ trip: initialTrip }) {
   const { fn: deletePlaceFn } = useFetch(deleteTripPlace);
   const { fn: deleteExpFn } = useFetch(deleteTripExpense);
   const { fn: toggleVisitedFn } = useFetch(togglePlaceVisited);
+  const { fn: toggleSettledFn } = useFetch(toggleSplitSettled);
+
+  const loadFriends = async () => {
+    const res = await getUserFriends();
+    if (res?.success) {
+      setFriends(res.data);
+      // default select "me" and all friends when opening split
+      setSelectedFriendIds(["me", ...res.data.map((f) => f.id)]);
+    }
+  };
+
+  useEffect(() => {
+    loadFriends();
+  }, []);
 
   const refreshTrip = async () => {
     const res = await getTripDetails(trip.id);
@@ -111,17 +140,41 @@ export function TripDetailClient({ trip: initialTrip }) {
       return;
     }
 
+    let participantsData = [];
+
+    if (enableSplit) {
+      if (selectedFriendIds.length === 0) {
+        toast.error("Please select at least 1 participant to split with");
+        return;
+      }
+
+      participantsData = selectedFriendIds.map((id) => {
+        if (id === "me") {
+          return { friendId: "me", friendName: "Me", friendUpiId: null };
+        }
+        const found = friends.find((f) => f.id === id);
+        return {
+          friendId: found?.id || id,
+          friendName: found?.name || "Friend",
+          friendUpiId: found?.upiId || null,
+        };
+      });
+    }
+
     const res = await addExpFn(trip.id, {
       title: expTitle,
       amount: amountNum,
       paidBy: expPaidBy || "Me",
+      splitType: enableSplit ? "EQUAL" : "NONE",
+      participants: participantsData,
     });
 
     if (res?.success) {
-      toast.success("Expense recorded!");
+      toast.success(enableSplit ? "Expense split recorded!" : "Expense recorded!");
       setExpTitle("");
       setExpAmount("");
       setExpPaidBy("Me");
+      setEnableSplit(false);
       setExpenseModalOpen(false);
       refreshTrip();
     } else {
@@ -133,6 +186,24 @@ export function TripDetailClient({ trip: initialTrip }) {
   const handleDeleteExpense = async (expId) => {
     await deleteExpFn(expId);
     refreshTrip();
+  };
+
+  // Toggle Split Settled
+  const handleToggleSettled = async (splitId) => {
+    const res = await toggleSettledFn(splitId);
+    if (res?.success) {
+      toast.success(res.data.settled ? "Marked as Settled!" : "Marked as Unsettled");
+      refreshTrip();
+    } else {
+      toast.error(res?.error || "Failed to update settlement state");
+    }
+  };
+
+  // Toggle Expanded Expense Card
+  const toggleExpand = (expId) => {
+    setExpandedExpenseIds((prev) =>
+      prev.includes(expId) ? prev.filter((id) => id !== expId) : [...prev, expId]
+    );
   };
 
   // AI Trip Assistant
@@ -148,15 +219,60 @@ export function TripDetailClient({ trip: initialTrip }) {
     }
   };
 
-  // Calculate split expenses per person
+  // Calculate split expenses summary
   const paidBySummary = trip.expenses.reduce((acc, exp) => {
     const person = exp.paidBy || "Me";
     acc[person] = (acc[person] || 0) + exp.amount;
     return acc;
   }, {});
 
+  // Net Balance Summary (Who Owes You What)
+  const friendBalanceMap = {};
+  trip.expenses.forEach((exp) => {
+    if (exp.splits && exp.splits.length > 0) {
+      exp.splits.forEach((split) => {
+        if (split.friendName !== "Me") {
+          const key = split.friendName;
+          if (!friendBalanceMap[key]) {
+            friendBalanceMap[key] = {
+              name: split.friendName,
+              upiId: split.friendUpiId,
+              totalOwed: 0,
+              totalSettled: 0,
+              unsettledSplits: [],
+            };
+          }
+          if (!friendBalanceMap[key].upiId && split.friendUpiId) {
+            friendBalanceMap[key].upiId = split.friendUpiId;
+          }
+
+          if (split.settled) {
+            friendBalanceMap[key].totalSettled += split.amount;
+          } else {
+            friendBalanceMap[key].totalOwed += split.amount;
+            friendBalanceMap[key].unsettledSplits.push(split);
+          }
+        }
+      });
+    }
+  });
+
   const percentSpent = trip.budget > 0 ? (trip.totalSpent / trip.budget) * 100 : 0;
   const isOverBudget = percentSpent >= 100;
+
+  // Toggle participant checkbox in split form
+  const toggleParticipant = (id) => {
+    setSelectedFriendIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const currentAmountFloat = parseFloat(expAmount || "0");
+  const numParticipants = selectedFriendIds.length;
+  const perPersonShare =
+    numParticipants > 0 && !isNaN(currentAmountFloat) && currentAmountFloat > 0
+      ? (currentAmountFloat / numParticipants).toFixed(2)
+      : "0.00";
 
   return (
     <div className="space-y-6">
@@ -260,6 +376,79 @@ export function TripDetailClient({ trip: initialTrip }) {
         </Card>
       )}
 
+      {/* ── Net Balance & UPI Settlement Summary ── */}
+      {Object.keys(friendBalanceMap).length > 0 && (
+        <Card className="border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/30 dark:bg-emerald-950/20 shadow-xs">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                Group Split Net Balances & UPI Settlement
+              </span>
+              <Link href="/friends" className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                Manage Friends <ChevronRight className="h-3 w-3" />
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Object.values(friendBalanceMap).map((friendItem) => (
+                <div
+                  key={friendItem.name}
+                  className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-2xs space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        {friendItem.name}
+                      </p>
+                      <p className="text-[10px] text-zinc-500 font-mono">
+                        {friendItem.upiId || "No UPI ID"}
+                      </p>
+                    </div>
+
+                    {friendItem.totalOwed > 0 ? (
+                      <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 text-[10px] font-bold">
+                        Owes ₹{friendItem.totalOwed.toFixed(2)}
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 text-[10px] font-bold flex items-center gap-0.5">
+                        <CheckCircle2 className="h-3 w-3" /> Fully Settled
+                      </Badge>
+                    )}
+                  </div>
+
+                  {friendItem.totalOwed > 0 && (
+                    <div className="pt-1 flex items-center gap-2">
+                      <UpiPayButton
+                        upiId={friendItem.upiId}
+                        name={friendItem.name}
+                        amount={friendItem.totalOwed}
+                        note={`Trip split settlement (${trip.name})`}
+                        className="flex-1"
+                      />
+
+                      {friendItem.unsettledSplits.length > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2 text-[11px] border-zinc-300 dark:border-zinc-700"
+                          onClick={() => {
+                            friendItem.unsettledSplits.forEach((s) => handleToggleSettled(s.id));
+                          }}
+                        >
+                          Mark Settled
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2">
         {/* ── 1. Places to Visit Checklist ── */}
         <Card className="border-zinc-200/80 dark:border-zinc-800">
@@ -341,16 +530,19 @@ export function TripDetailClient({ trip: initialTrip }) {
             <div>
               <CardTitle className="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
                 <Users className="h-4 w-4 text-emerald-500" />
-                Trip Expenses & Splits
+                Trip Expenses & Group Splits
               </CardTitle>
               <p className="text-xs text-zinc-500">
-                Track who paid for what on this trip
+                Track shared costs and individual shares
               </p>
             </div>
             <Button
               size="sm"
               className="h-7 text-xs bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-              onClick={() => setExpenseModalOpen(true)}
+              onClick={() => {
+                loadFriends();
+                setExpenseModalOpen(true);
+              }}
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
               Add Expense
@@ -383,36 +575,128 @@ export function TripDetailClient({ trip: initialTrip }) {
                 No expenses logged for this trip yet.
               </div>
             ) : (
-              <div className="space-y-2">
-                {trip.expenses.map((exp) => (
-                  <div
-                    key={exp.id}
-                    className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-100 dark:border-zinc-900"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        {exp.title}
-                      </p>
-                      <p className="text-[10px] text-zinc-500">
-                        Paid by <span className="font-semibold text-zinc-700 dark:text-zinc-300">{exp.paidBy || "Me"}</span>
-                      </p>
-                    </div>
+              <div className="space-y-2.5">
+                {trip.expenses.map((exp) => {
+                  const hasSplits = exp.splits && exp.splits.length > 0;
+                  const isExpanded = expandedExpenseIds.includes(exp.id);
+                  const settledCount = hasSplits
+                    ? exp.splits.filter((s) => s.settled).length
+                    : 0;
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400">
-                        -${exp.amount.toFixed(2)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-zinc-400 hover:text-rose-600"
-                        onClick={() => handleDeleteExpense(exp.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                  return (
+                    <div
+                      key={exp.id}
+                      className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden transition-all"
+                    >
+                      <div className="flex items-center justify-between p-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                              {exp.title}
+                            </p>
+                            {hasSplits && (
+                              <Badge variant="outline" className="text-[10px] bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200">
+                                {settledCount}/{exp.splits.length} Settled
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">
+                            Paid by <span className="font-semibold text-zinc-700 dark:text-zinc-300">{exp.paidBy || "Me"}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400">
+                            -${exp.amount.toFixed(2)}
+                          </span>
+
+                          {hasSplits && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-zinc-400 hover:text-zinc-700"
+                              onClick={() => toggleExpand(exp.id)}
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="h-3.5 w-3.5" />
+                              ) : (
+                                <ChevronDown className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-zinc-400 hover:text-rose-600"
+                            onClick={() => handleDeleteExpense(exp.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Split Entries Expanded Details */}
+                      {hasSplits && isExpanded && (
+                        <div className="border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/60 dark:bg-zinc-950/40 p-3 space-y-2">
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                            Equal Split Breakdown
+                          </p>
+                          <div className="space-y-1.5">
+                            {exp.splits.map((s) => (
+                              <div
+                                key={s.id}
+                                className="flex items-center justify-between p-2 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800 text-xs"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    {s.friendName}
+                                  </span>
+                                  <span className="text-zinc-500 font-bold">
+                                    ₹{s.amount.toFixed(2)}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  {s.friendName !== "Me" && !s.settled && (
+                                    <UpiPayButton
+                                      upiId={s.friendUpiId}
+                                      name={s.friendName}
+                                      amount={s.amount}
+                                      note={`Split for ${exp.title}`}
+                                      size="xs"
+                                    />
+                                  )}
+
+                                  {s.friendName !== "Me" && (
+                                    <Button
+                                      size="xs"
+                                      variant={s.settled ? "outline" : "default"}
+                                      className={`h-6 text-[10px] ${
+                                        s.settled
+                                          ? "text-emerald-600 border-emerald-300 dark:border-emerald-800"
+                                          : "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                                      }`}
+                                      onClick={() => handleToggleSettled(s.id)}
+                                    >
+                                      {s.settled ? "✓ Settled" : "Mark Settled"}
+                                    </Button>
+                                  )}
+
+                                  {s.friendName === "Me" && (
+                                    <Badge variant="secondary" className="text-[10px]">
+                                      Your Share
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -464,13 +748,13 @@ export function TripDetailClient({ trip: initialTrip }) {
         </DialogContent>
       </Dialog>
 
-      {/* Add Expense Dialog */}
+      {/* Add Expense & Split Dialog */}
       <Dialog open={expenseModalOpen} onOpenChange={setExpenseModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold">Log Trip Expense</DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Record a new shared expense and specify who paid.
+              Record a new trip expense and optionally split it equally with friends.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddExpense} className="space-y-4 pt-2">
@@ -485,9 +769,10 @@ export function TripDetailClient({ trip: initialTrip }) {
                 autoFocus
               />
             </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Amount ($)
+                Total Amount ($ / ₹)
               </label>
               <Input
                 type="number"
@@ -497,6 +782,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                 onChange={(e) => setExpAmount(e.target.value)}
               />
             </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 Who Paid?
@@ -507,6 +793,100 @@ export function TripDetailClient({ trip: initialTrip }) {
                 onChange={(e) => setExpPaidBy(e.target.value)}
               />
             </div>
+
+            {/* Split Equal Checkbox Toggle */}
+            <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="enable-split"
+                    checked={enableSplit}
+                    onCheckedChange={(checked) => {
+                      setEnableSplit(!!checked);
+                      if (checked && selectedFriendIds.length === 0) {
+                        setSelectedFriendIds(["me", ...friends.map((f) => f.id)]);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="enable-split"
+                    className="text-xs font-bold text-zinc-900 dark:text-zinc-100 cursor-pointer"
+                  >
+                    Split this expense equally
+                  </label>
+                </div>
+
+                <Link
+                  href="/friends"
+                  target="_blank"
+                  className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5"
+                >
+                  <UserPlus className="h-3 w-3" /> Manage Friends
+                </Link>
+              </div>
+
+              {enableSplit && (
+                <div className="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    <span>Select Participants:</span>
+                    {numParticipants > 0 && (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        ₹{perPersonShare} / person ({numParticipants})
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                    {/* Always include 'Me' */}
+                    <div
+                      className="flex items-center space-x-2 p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                      onClick={() => toggleParticipant("me")}
+                    >
+                      <Checkbox
+                        id="part-me"
+                        checked={selectedFriendIds.includes("me")}
+                        onCheckedChange={() => toggleParticipant("me")}
+                      />
+                      <label htmlFor="part-me" className="text-xs font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer flex-1">
+                        Me (You)
+                      </label>
+                    </div>
+
+                    {friends.length === 0 ? (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 italic pt-1">
+                        No friends added yet. Click &quot;Manage Friends&quot; above to add contacts with UPI IDs.
+                      </p>
+                    ) : (
+                      friends.map((friend) => (
+                        <div
+                          key={friend.id}
+                          className="flex items-center space-x-2 p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                          onClick={() => toggleParticipant(friend.id)}
+                        >
+                          <Checkbox
+                            id={`part-${friend.id}`}
+                            checked={selectedFriendIds.includes(friend.id)}
+                            onCheckedChange={() => toggleParticipant(friend.id)}
+                          />
+                          <label
+                            htmlFor={`part-${friend.id}`}
+                            className="text-xs font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer flex-1 flex items-center justify-between"
+                          >
+                            <span>{friend.name}</span>
+                            {friend.upiId && (
+                              <span className="text-[10px] text-zinc-400 font-mono">
+                                {friend.upiId}
+                              </span>
+                            )}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2 pt-2">
               <Button type="button" variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setExpenseModalOpen(false)}>
                 Cancel
