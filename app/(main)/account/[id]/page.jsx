@@ -30,7 +30,13 @@ function TableSkeleton() {
 
 export default async function AccountPage({ params }) {
   const { id } = await params;
-  const accountData = await getAccountWithTransaction(id);
+
+  let accountData;
+  try {
+    accountData = await getAccountWithTransaction(id);
+  } catch (err) {
+    notFound();
+  }
 
   if (!accountData) {
     notFound();
@@ -88,7 +94,7 @@ export default async function AccountPage({ params }) {
             </p>
           </div>
           {/* Add Transaction button pre-filled for this account */}
-          <Link href={`/transaction/create?accountId=${id}`}>
+          <Link href={`/transaction/create?bankAccountId=${id}`}>
             <Button
               size="sm"
               className="h-8 px-3 text-xs bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-white font-medium shadow-xs"

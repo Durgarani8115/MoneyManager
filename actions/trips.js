@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { requireDbUser } from "@/lib/checkUser";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -66,7 +66,9 @@ function serializeTrip(trip) {
  */
 export async function getUserTrips() {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const trips = await db.trip.findMany({
       where: { userId: user.id },
@@ -96,7 +98,9 @@ export async function getUserTrips() {
  */
 export async function getTripDetails(tripId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const trip = await db.trip.findFirst({
       where: { id: tripId, userId: user.id },
@@ -125,7 +129,9 @@ export async function getTripDetails(tripId) {
  */
 export async function createTrip(data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     if (!db.trip) {
       throw new Error("Database client is updating. Please restart your dev server (npm run dev).");
@@ -166,7 +172,9 @@ export async function createTrip(data) {
  */
 export async function deleteTrip(tripId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const existing = await db.trip.findFirst({
       where: { id: tripId, userId: user.id },
@@ -188,7 +196,9 @@ export async function deleteTrip(tripId) {
  */
 export async function addTripPlace(tripId, data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const trip = await db.trip.findFirst({
       where: { id: tripId, userId: user.id },
@@ -216,7 +226,9 @@ export async function addTripPlace(tripId, data) {
  */
 export async function togglePlaceVisited(placeId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const place = await db.tripPlace.findUnique({
       where: { id: placeId },
@@ -244,7 +256,9 @@ export async function togglePlaceVisited(placeId) {
  */
 export async function deleteTripPlace(placeId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const place = await db.tripPlace.findUnique({
       where: { id: placeId },
@@ -269,7 +283,9 @@ export async function deleteTripPlace(placeId) {
  */
 export async function addTripExpense(tripId, data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const trip = await db.trip.findFirst({
       where: { id: tripId, userId: user.id },
@@ -348,7 +364,9 @@ export async function addTripExpense(tripId, data) {
  */
 export async function toggleSplitSettled(splitEntryId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const entry = await db.expenseSplitEntry.findUnique({
       where: { id: splitEntryId },
@@ -387,7 +405,9 @@ export async function toggleSplitSettled(splitEntryId) {
  */
 export async function deleteTripExpense(expenseId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const expense = await db.tripExpense.findUnique({
       where: { id: expenseId },
@@ -412,7 +432,9 @@ export async function deleteTripExpense(expenseId) {
  */
 export async function generateAiTripPlan(tripId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const trip = await db.trip.findFirst({
       where: { id: tripId, userId: user.id },
@@ -428,7 +450,7 @@ export async function generateAiTripPlan(tripId) {
     if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const totalBudget = parseFloat(trip.budget);
     const currentExpensesSum = trip.expenses.reduce(
@@ -437,13 +459,13 @@ export async function generateAiTripPlan(tripId) {
     );
 
     const placesList = trip.places
-      .map((p) => `- ${p.name} (Est. $${parseFloat(p.estimatedCost)})`)
+      .map((p) => `- ${p.name} (Est. ₹${parseFloat(p.estimatedCost)})`)
       .join("\n");
 
     const expensesList = trip.expenses
       .map(
         (e) =>
-          `- ${e.title}: $${parseFloat(e.amount)} (Paid by: ${e.paidBy || "Me"})`
+          `- ${e.title}: ₹${parseFloat(e.amount)} (Paid by: ${e.paidBy || "Me"})`
       )
       .join("\n");
 
@@ -456,8 +478,8 @@ export async function generateAiTripPlan(tripId) {
       Trip Details:
       - Name: ${trip.name}
       - Destination: ${trip.destination}
-      - Total Budget: $${totalBudget}
-      - Total Spent So Far: $${currentExpensesSum}
+      - Total Budget: ₹${totalBudget}
+      - Total Spent So Far: ₹${currentExpensesSum}
       - Over Budget Alert: ${isOverBudget ? "YES - Budget Exceeded!" : "No, within budget"}
 
       Places to Visit Checklist:

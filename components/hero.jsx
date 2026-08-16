@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+
 import { Button } from "./ui/button";
 import ShinyButton from "./ui/react-bits/shiny-button";
 import TiltedCard from "./ui/react-bits/tilted-card";
@@ -19,7 +19,7 @@ import {
   Play,
 } from "lucide-react";
 
-const HeroSection = () => {
+const HeroSection = ({ user }) => {
   const imageRef = useRef(null);
 
   useEffect(() => {
@@ -47,10 +47,27 @@ const HeroSection = () => {
 
       <div className="container mx-auto text-center relative z-10">
         
+        {/* Dashboard Logo Brand Highlight */}
+        <div className="flex justify-center mb-6">
+          <div className="relative group">
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-emerald-500/40 via-emerald-400/20 to-emerald-600/40 rounded-2xl blur-md opacity-50 group-hover:opacity-80 transition duration-500 pointer-events-none" />
+            <div className="relative p-2 rounded-2xl bg-white/90 dark:bg-zinc-950/90 border border-zinc-200/80 dark:border-zinc-800 shadow-lg flex items-center gap-3 px-4 py-2 backdrop-blur-md">
+              <div className="text-left">
+                <span className="text-lg font-black tracking-tight text-zinc-900 dark:text-white block leading-none">
+                  Trak<span className="text-emerald-500">ex</span>
+                </span>
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  Money Manager
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Status Pill Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold tracking-wide mb-6 shadow-xs animate-pulse">
           <Sparkles className="h-3.5 w-3.5" />
-          <span> Powered by Gemini AI • Smart Financial Management 2.0</span>
+          <span>Powered by Gemini AI • Smart Financial Management 2.0</span>
         </div>
 
         {/* Hero Title */}
@@ -66,23 +83,21 @@ const HeroSection = () => {
 
         {/* Hero Action CTAs */}
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <SignedIn>
+          {user ? (
             <Link href="/dashboard">
               <ShinyButton variant="primary" className="w-full sm:w-auto text-base py-3.5 px-8">
                 Go to Dashboard
                 <ArrowRight className="h-4 w-4 text-emerald-400" />
               </ShinyButton>
             </Link>
-          </SignedIn>
-
-          <SignedOut>
+          ) : (
             <Link href="/sign-up">
               <ShinyButton variant="primary" className="w-full sm:w-auto text-base py-3.5 px-8">
                 Get Started Free
                 <ArrowRight className="h-4 w-4 text-emerald-400" />
               </ShinyButton>
             </Link>
-          </SignedOut>
+          )}
 
           <Link href="#features">
             <ShinyButton variant="secondary" className="w-full sm:w-auto text-base py-3.5 px-8">

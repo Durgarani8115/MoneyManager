@@ -88,7 +88,7 @@ export const howItWorksData = [
 // Testimonials Data
 export const testimonialsData = [
     {
-        name: "Sarah Johnson",
+        name: "Durga Rani",
         role: "Small Business Owner",
         image: "https://randomuser.me/api/portraits/women/75.jpg",
         quote:

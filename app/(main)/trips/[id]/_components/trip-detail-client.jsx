@@ -128,9 +128,22 @@ export function TripDetailClient({ trip: initialTrip }) {
   };
 
   // Delete Place
-  const handleDeletePlace = async (placeId) => {
-    await deletePlaceFn(placeId);
-    refreshTrip();
+  const handleDeletePlace = async (place) => {
+    const ok = await confirm({
+      title: `Delete "${place.name}"?`,
+      description: "Are you sure you want to remove this place from your itinerary checklist?",
+      variant: "destructive",
+      confirmLabel: "Remove Place",
+    });
+    if (!ok) return;
+
+    const res = await deletePlaceFn(place.id);
+    if (res?.success === false) {
+      toast.error(res?.error || "Failed to remove place");
+    } else {
+      toast.success("Place removed from checklist");
+      refreshTrip();
+    }
   };
 
   // Add Split Expense Handler
@@ -187,18 +200,26 @@ export function TripDetailClient({ trip: initialTrip }) {
   // Delete Expense
   const handleDeleteExpense = async (exp) => {
     const hasUnsettled = exp.splits && exp.splits.some((s) => !s.settled);
-    if (hasUnsettled) {
-      const ok = await confirm({
-        title: `Delete "${exp.title}"?`,
-        description:
-          "This expense has pending unsettled splits with friends. Deleting it will permanently remove these split records.",
-        variant: "destructive",
-        confirmLabel: "Delete Expense",
-      });
-      if (!ok) return;
+    const description = hasUnsettled
+      ? "This expense has pending unsettled splits with friends. Deleting it will permanently remove these split records."
+      : "Are you sure you want to delete this trip expense? This action cannot be undone.";
+
+    const ok = await confirm({
+      title: `Delete "${exp.title}"?`,
+      description,
+      variant: "destructive",
+      confirmLabel: "Delete Expense",
+    });
+
+    if (!ok) return;
+
+    const res = await deleteExpFn(exp.id);
+    if (res?.success === false) {
+      toast.error(res?.error || "Failed to delete expense");
+    } else {
+      toast.success("Expense deleted successfully");
+      refreshTrip();
     }
-    await deleteExpFn(exp.id);
-    refreshTrip();
   };
 
   // Toggle Split Settled
@@ -534,7 +555,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 text-zinc-400 hover:text-rose-600"
-                      onClick={() => handleDeletePlace(place.id)}
+                      onClick={() => handleDeletePlace(place)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

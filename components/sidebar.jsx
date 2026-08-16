@@ -3,7 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useUser, SignOutButton } from "@clerk/nextjs";
+import { LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +25,6 @@ import {
   BarChart3,
   PlusCircle,
   ChevronRight,
-  LogOut,
   ArrowLeftRight,
   Target,
   Plane,
@@ -78,9 +78,8 @@ const navItems = [
   },
 ];
 
-export function CategorySidebar() {
+export function CategorySidebar({ user }) {
   const pathname = usePathname();
-  const { user } = useUser();
 
   return (
     <Sidebar
@@ -98,7 +97,7 @@ export function CategorySidebar() {
               TRAKEX
             </span>
             <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-widest uppercase mt-0.5">
-              Fintech Hub
+              Money Manager
             </span>
           </div>
         </Link>
@@ -161,37 +160,36 @@ export function CategorySidebar() {
       <SidebarFooter className="p-3.5 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
         <div className="flex items-center justify-between gap-2 w-full">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            {user?.imageUrl ? (
+            {user?.image ? (
               <img
-                src={user.imageUrl}
-                alt={user.fullName || "User"}
+                src={user.image}
+                alt={user.name || "User"}
                 className="w-8 h-8 rounded-full border border-zinc-200 dark:border-zinc-800 shrink-0 object-cover"
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                {user?.firstName?.charAt(0) || "U"}
+                {user?.name?.charAt(0) || "U"}
               </div>
             )}
             <div className="truncate text-left min-w-0 flex-1">
               <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate leading-tight">
-                {user?.fullName || user?.firstName || "User"}
+                {user?.name || "User"}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate leading-tight">
-                {user?.primaryEmailAddress?.emailAddress || ""}
+                {user?.email || ""}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-0.5 shrink-0">
             <ThemeToggle />
-            <SignOutButton>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </SignOutButton>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="h-8 w-8 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </SidebarFooter>

@@ -1,7 +1,7 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import aj from "@/lib/arcjet";
@@ -17,15 +17,16 @@ const serializeAmount = (obj) => ({
 // Create Transaction
 export async function createTransaction(data) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    const session = await auth();
+    const user = session?.user;
+    if (!user?.id) throw new Error("Unauthorized");
 
     // Get request data for ArcJet
     const req = await request();
 
     // Check rate limit
     const decision = await aj.protect(req, {
-      userId,
+      userId: user.id,
       requested: 1, // Specify how many tokens to consume
     });
 
@@ -46,17 +47,9 @@ export async function createTransaction(data) {
       throw new Error("Request blocked");
     }
 
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    const account = await db.account.findFirst({
+    const account = await db.bankAccount.findFirst({
       where: {
-        id: data.accountId,
+        id: data.bankAccountId,
         userId: user.id,
       },
     });
@@ -83,8 +76,8 @@ export async function createTransaction(data) {
         },
       });
 
-      await tx.account.update({
-        where: { id: data.accountId },
+      await tx.bankAccount.update({
+        where: { id: data.bankAccountId },
         data: { balance: newBalance },
       });
 
@@ -92,7 +85,7 @@ export async function createTransaction(data) {
     });
 
     revalidatePath("/dashboard");
-    revalidatePath(`/account/${transaction.accountId}`);
+    revalidatePath(`/account/${transaction.bankAccountId}`);
 
     return { success: true, data: serializeAmount(transaction) };
   } catch (error) {
@@ -101,14 +94,9 @@ export async function createTransaction(data) {
 }
 
 export async function getTransaction(id) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-
-  if (!user) throw new Error("User not found");
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) throw new Error("Unauthorized");
 
   const transaction = await db.transaction.findFirst({
     where: {
@@ -124,14 +112,9 @@ export async function getTransaction(id) {
 
 export async function updateTransaction(id, data) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-
-    if (!user) throw new Error("User not found");
+    const session = await auth();
+    const user = session?.user;
+    if (!user?.id) throw new Error("Unauthorized");
 
     // Get original transaction to calculate balance change
     const originalTransaction = await db.transaction.findFirst({
@@ -140,18 +123,18 @@ export async function updateTransaction(id, data) {
         userId: user.id,
       },
       include: {
-        account: true,
+        bankAccount: true,
       },
     });
 
     if (!originalTransaction) throw new Error("Transaction not found");
 
     const targetAccount =
-      data.accountId === originalTransaction.accountId
-        ? originalTransaction.account
-        : await db.account.findFirst({
+      data.bankAccountId === originalTransaction.bankAccountId
+        ? originalTransaction.bankAccount
+        : await db.bankAccount.findFirst({
             where: {
-              id: data.accountId,
+              id: data.bankAccountId,
               userId: user.id,
             },
           });
@@ -183,9 +166,9 @@ export async function updateTransaction(id, data) {
         },
       });
 
-      if (data.accountId === originalTransaction.accountId) {
-        await tx.account.update({
-          where: { id: data.accountId },
+      if (data.bankAccountId === originalTransaction.bankAccountId) {
+        await tx.bankAccount.update({
+          where: { id: data.bankAccountId },
           data: {
             balance: {
               increment: netBalanceChange,
@@ -193,8 +176,8 @@ export async function updateTransaction(id, data) {
           },
         });
       } else {
-        await tx.account.update({
-          where: { id: originalTransaction.accountId },
+        await tx.bankAccount.update({
+          where: { id: originalTransaction.bankAccountId },
           data: {
             balance: {
               increment: -oldBalanceChange,
@@ -202,8 +185,8 @@ export async function updateTransaction(id, data) {
           },
         });
 
-        await tx.account.update({
-          where: { id: data.accountId },
+        await tx.bankAccount.update({
+          where: { id: data.bankAccountId },
           data: {
             balance: {
               increment: newBalanceChange,
@@ -216,7 +199,7 @@ export async function updateTransaction(id, data) {
     });
 
     revalidatePath("/dashboard");
-    revalidatePath(`/account/${data.accountId}`);
+    revalidatePath(`/account/${data.bankAccountId}`);
 
     return { success: true, data: serializeAmount(transaction) };
   } catch (error) {
@@ -227,16 +210,9 @@ export async function updateTransaction(id, data) {
 // Get User Transactions
 export async function getUserTransactions(query = {}) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-
-    const user = await db.user.findUnique({
-      where: { clerkUserId: userId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const session = await auth();
+    const user = session?.user;
+    if (!user?.id) throw new Error("Unauthorized");
 
     const transactions = await db.transaction.findMany({
       where: {
@@ -244,7 +220,7 @@ export async function getUserTransactions(query = {}) {
         ...query,
       },
       include: {
-        account: true,
+        bankAccount: true,
       },
       orderBy: {
         date: "desc",
@@ -260,7 +236,7 @@ export async function getUserTransactions(query = {}) {
 // Scan Receipt
 export async function scanReceipt(file) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Convert File to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();

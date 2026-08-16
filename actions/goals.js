@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { requireDbUser } from "@/lib/checkUser";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { serializeGoal } from "@/lib/goal-status";
 
@@ -10,7 +10,9 @@ import { serializeGoal } from "@/lib/goal-status";
  */
 export async function getUserGoals() {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const goals = await db.goal.findMany({
       where: { userId: user.id },
@@ -36,7 +38,9 @@ export async function getUserGoals() {
  */
 export async function getGoalDetails(goalId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const goal = await db.goal.findFirst({
       where: { id: goalId, userId: user.id },
@@ -63,7 +67,9 @@ export async function getGoalDetails(goalId) {
  */
 export async function createGoal(data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const targetFloat = parseFloat(data.targetAmount);
     if (isNaN(targetFloat) || targetFloat <= 0) {
@@ -94,7 +100,9 @@ export async function createGoal(data) {
  */
 export async function updateGoal(goalId, data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const existing = await db.goal.findFirst({
       where: { id: goalId, userId: user.id },
@@ -131,7 +139,9 @@ export async function updateGoal(goalId, data) {
  */
 export async function deleteGoal(goalId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const existing = await db.goal.findFirst({
       where: { id: goalId, userId: user.id },
@@ -154,7 +164,9 @@ export async function deleteGoal(goalId) {
  */
 export async function addContribution(goalId, { amount, idempotencyKey }) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     // 1. Verify goal ownership
     const goal = await db.goal.findFirst({
@@ -228,7 +240,9 @@ export async function addContribution(goalId, { amount, idempotencyKey }) {
  */
 export async function deleteContribution(contributionId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const contribution = await db.goalContribution.findFirst({
       where: { id: contributionId, userId: user.id },

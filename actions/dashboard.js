@@ -1,29 +1,31 @@
 "use server";
 
 import aj from "@/lib/arcjet";
-import { requireDbUser } from "@/lib/checkUser";
+import { auth } from "@/auth";
 import { db } from "@/lib/prisma";
 import { request } from "@arcjet/next";
-import { auth } from "@clerk/nextjs/server";
+
 import { revalidatePath } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 
 const serializeTransaction = (obj) => {
   const serialized = { ...obj };
   if (obj.balance !== undefined && obj.balance !== null) {
-    serialized.balance = obj.balance.toNumber();
+    serialized.balance = obj.balance.toNumber ? obj.balance.toNumber() : parseFloat(obj.balance);
   }
   if (obj.amount !== undefined && obj.amount !== null) {
-    serialized.amount = obj.amount.toNumber();
+    serialized.amount = obj.amount.toNumber ? obj.amount.toNumber() : parseFloat(obj.amount);
   }
   return serialized;
 };
 
 export async function getUserAccounts() {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
-    const accounts = await db.account.findMany({
+    const accounts = await db.bankAccount.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       include: {
@@ -48,15 +50,16 @@ export async function getUserAccounts() {
 
 export async function createAccount(data) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     // Get request data for ArcJet
     const req = await request();
 
     // Check rate limit
     const decision = await aj.protect(req, {
-      userId,
+      userId: user.id,
       requested: 1, // Specify how many tokens to consume
     });
 
@@ -77,8 +80,6 @@ export async function createAccount(data) {
       throw new Error("Request blocked");
     }
 
-    const user = await requireDbUser();
-
     // Convert balance to float before saving
     const balanceFloat = parseFloat(data.balance);
     if (isNaN(balanceFloat)) {
@@ -86,7 +87,7 @@ export async function createAccount(data) {
     }
 
     // Check if this is the user's first account
-    const existingAccounts = await db.account.findMany({
+    const existingAccounts = await db.bankAccount.findMany({
       where: { userId: user.id },
     });
 
@@ -97,14 +98,14 @@ export async function createAccount(data) {
 
     // If this account should be default, unset other default accounts
     if (shouldBeDefault) {
-      await db.account.updateMany({
+      await db.bankAccount.updateMany({
         where: { userId: user.id, isDefault: true },
         data: { isDefault: false },
       });
     }
 
     // Create new account
-    const account = await db.account.create({
+    const account = await db.bankAccount.create({
       data: {
         ...data,
         balance: balanceFloat,
@@ -123,14 +124,16 @@ export async function createAccount(data) {
   }
 }
 
-export async function getDashboardData(accountId) {
+export async function getDashboardData(bankAccountId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     // Get all user transactions, optionally filtered by accountId
     const where = { userId: user.id };
-    if (accountId) {
-      where.accountId = accountId;
+    if (bankAccountId) {
+      where.bankAccountId = bankAccountId;
     }
 
     const transactions = await db.transaction.findMany({

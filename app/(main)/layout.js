@@ -1,5 +1,6 @@
 import React, { Suspense } from 'react'
-import { checkUser } from '@/lib/checkUser'
+import { redirect } from 'next/navigation'
+import { auth } from '@/auth'
 import CategorySidebar from '@/components/sidebar'
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -20,11 +21,12 @@ async function SwitcherContainer() {
 }
 
 const MainLayout = async ({ children }) => {
-  await checkUser();
+  const session = await auth();
+  const user = session?.user;
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <CategorySidebar />
+      <CategorySidebar user={user} />
       <SidebarInset className="flex flex-col h-full min-w-0 bg-background overflow-hidden">
         {/* Dynamic Header Top Bar */}
         <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 px-4 md:px-6 backdrop-blur-md shrink-0 gap-4">

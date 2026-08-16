@@ -3,7 +3,7 @@
 import { db } from "@/lib/prisma";
 import { subDays } from "date-fns";
 
-const ACCOUNT_ID = "a30d33ce-04ff-4f25-8071-f3ecf2717ba1";
+const BANK_ACCOUNT_ID = "a30d33ce-04ff-4f25-8071-f3ecf2717ba1";
 const USER_ID = "7d465131-5e13-43b7-99ee-feee2fc5ed5d";
 
 // Categories with their typical amount ranges
@@ -69,7 +69,7 @@ export async function seedTransactions() {
           category,
           status: "COMPLETED",
           userId: USER_ID,
-          accountId: ACCOUNT_ID,
+          bankAccountId: BANK_ACCOUNT_ID,
           createdAt: date,
           updatedAt: date,
         };
@@ -83,7 +83,7 @@ export async function seedTransactions() {
     await db.$transaction(async (tx) => {
       // Clear existing transactions
       await tx.transaction.deleteMany({
-        where: { accountId: ACCOUNT_ID },
+        where: { bankAccountId: BANK_ACCOUNT_ID },
       });
 
       // Insert new transactions
@@ -92,8 +92,8 @@ export async function seedTransactions() {
       });
 
       // Update account balance
-      await tx.account.update({
-        where: { id: ACCOUNT_ID },
+      await tx.bankAccount.update({
+        where: { id: BANK_ACCOUNT_ID },
         data: { balance: totalBalance },
       });
     });

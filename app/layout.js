@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/nextjs';
+// Layout component
 import "./globals.css";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -11,22 +11,20 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className="bg-background text-foreground antialiased min-h-screen">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <ConfirmProvider>
-              {children}
-              <Toaster position="top-right" richColors />
-            </ConfirmProvider>
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-background text-foreground antialiased min-h-screen">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <ConfirmProvider>
+            {children}
+            <Toaster position="top-right" richColors />
+          </ConfirmProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

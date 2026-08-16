@@ -107,7 +107,7 @@ export function CreateFriendDrawer({ open, onOpenChange, onSuccess, initialData 
                   className="pl-9 text-sm font-mono"
                   {...register("upiId", {
                     pattern: {
-                      value: /^[\w.\-]+@[\w]+₹/,
+                      value: /^[\w.\-]+@[\w.]+$/,
                       message: "Invalid UPI ID format (e.g. username@upi)",
                     },
                   })}

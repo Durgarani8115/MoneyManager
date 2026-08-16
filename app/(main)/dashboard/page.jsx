@@ -28,7 +28,7 @@ import { AccountFilter } from "./_component/account-filter";
 export const dynamic = "force-dynamic";
 
 // --- Helper to compute monthly stats from raw transactions ---
-function computeStats(accounts, transactions, selectedAccountId) {
+function computeStats(accounts, transactions, selectedBankAccountId) {
   const now = new Date();
   const thisMonth = transactions.filter((t) => {
     const d = new Date(t.date);
@@ -37,8 +37,8 @@ function computeStats(accounts, transactions, selectedAccountId) {
     );
   });
 
-  const selectedAccount = selectedAccountId
-    ? accounts.find((a) => a.id === selectedAccountId)
+  const selectedAccount = selectedBankAccountId
+    ? accounts.find((a) => a.id === selectedBankAccountId)
     : null;
 
   const netWorth = selectedAccount ? parseFloat(selectedAccount.balance) : 0;
@@ -61,22 +61,22 @@ async function DashboardPage({ searchParams }) {
     
     // Resolve searchParams (Next.js 15 requires awaiting searchParams)
     const searchParamsObj = await searchParams;
-    let selectedAccountId = searchParamsObj?.accountId || (defaultAccount ? defaultAccount.id : (accounts.length > 0 ? accounts[0].id : null));
+    let selectedBankAccountId = searchParamsObj?.bankAccountId || (defaultAccount ? defaultAccount.id : (accounts.length > 0 ? accounts[0].id : null));
 
     // Validate if the selected account actually exists
-    if (selectedAccountId && !accounts.some((a) => a.id === selectedAccountId)) {
-      selectedAccountId = defaultAccount ? defaultAccount.id : (accounts.length > 0 ? accounts[0].id : null);
+    if (selectedBankAccountId && !accounts.some((a) => a.id === selectedBankAccountId)) {
+      selectedBankAccountId = defaultAccount ? defaultAccount.id : (accounts.length > 0 ? accounts[0].id : null);
     }
 
-    const transactions = selectedAccountId ? await getDashboardData(selectedAccountId) : [];
+    const transactions = selectedBankAccountId ? await getDashboardData(selectedBankAccountId) : [];
 
     let budgetData = null;
-    if (selectedAccountId) {
-      budgetData = await getCurrentBudget(selectedAccountId);
+    if (selectedBankAccountId) {
+      budgetData = await getCurrentBudget(selectedBankAccountId);
     }
 
     const { netWorth, monthlyIncome, monthlyExpense, netSavings, selectedAccount } =
-      computeStats(accounts, transactions, selectedAccountId);
+      computeStats(accounts, transactions, selectedBankAccountId);
 
     // Last 5 transactions for the selected account, sorted by date
     const recentTransactions = [...transactions]
@@ -288,7 +288,7 @@ async function DashboardPage({ searchParams }) {
               <div className="space-y-1">
                 {recentTransactions.map((transaction) => {
                   const account = accounts.find(
-                    (a) => a.id === transaction.accountId
+                    (a) => a.id === transaction.bankAccountId
                   );
                   return (
                     <div
@@ -330,8 +330,7 @@ async function DashboardPage({ searchParams }) {
                             : "text-emerald-500"
                         )}
                       >
-                        {transaction.type === "EXPENSE" ? "-" : "+"}$
-                        {transaction.amount.toFixed(2)}
+                        {transaction.type === "EXPENSE" ? "-" : "+"}₹{transaction.amount.toFixed(2)}
                       </div>
                     </div>
                   );

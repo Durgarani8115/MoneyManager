@@ -1,5 +1,6 @@
 import Header from "@/components/header";
 import HeroSection from "@/components/hero";
+import { auth } from "@/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,14 +18,17 @@ import AnimatedCounter from "@/components/ui/react-bits/animated-counter";
 import ShinyButton from "@/components/ui/react-bits/shiny-button";
 import AnimatedGradientText from "@/components/ui/react-bits/animated-gradient-text";
 
-export default function Home() {
+export default async function Home() {
+    const session = await auth();
+    const user = session?.user;
+
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-emerald-500 selection:text-white">
             <Header />
             <div className="pt-24 md:pt-28">
                 
                 {/* 1. React Bits Enhanced Hero Section */}
-                <HeroSection />
+                <HeroSection user={user} />
 
                 {/* 2. Key Statistics Bar with Animated React Bits Counters */}
                 <section className="py-16 bg-zinc-50/80 dark:bg-zinc-900/50 border-y border-zinc-200/80 dark:border-zinc-800">

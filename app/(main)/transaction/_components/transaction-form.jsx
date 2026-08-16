@@ -64,7 +64,7 @@ export function AddTransactionForm({
             type: initialData.type,
             amount: initialData.amount.toString(),
             description: initialData.description,
-            accountId: initialData.accountId,
+            bankAccountId: initialData.bankAccountId,
             category: initialData.category,
             date: new Date(initialData.date),
             isRecurring: initialData.isRecurring,
@@ -76,7 +76,7 @@ export function AddTransactionForm({
             type: "EXPENSE",
             amount: "",
             description: "",
-            accountId: accounts.find((ac) => ac.isDefault)?.id,
+            bankAccountId: accounts.find((ac) => ac.isDefault)?.id,
             date: new Date(),
             isRecurring: false,
           },
@@ -130,7 +130,7 @@ export function AddTransactionForm({
         : "Transaction created successfully"
     );
     reset();
-    router.push(`/account/${transactionResult.data.accountId}`);
+    router.push(`/account/${transactionResult.data.bankAccountId}`);
   };
 
   const handleScanComplete = (scannedData) => {
@@ -150,7 +150,7 @@ export function AddTransactionForm({
   const type = useWatch({ control, name: "type" });
   const isRecurring = useWatch({ control, name: "isRecurring" });
   const date = useWatch({ control, name: "date" });
-  const accountId = useWatch({ control, name: "accountId" });
+  const bankAccountId = useWatch({ control, name: "bankAccountId" });
   const category = useWatch({ control, name: "category" });
   const description = useWatch({ control, name: "description" });
   const recurringInterval = useWatch({ control, name: "recurringInterval" });
@@ -170,11 +170,31 @@ export function AddTransactionForm({
 
     if (res?.success && res.category) {
       setValue("category", res.category);
-      toast.success(`AI selected category: ₹{res.categoryName}`);
+      toast.success(`AI selected category: ${res.categoryName}`);
     } else {
       toast.error("Could not predict category");
     }
   };
+
+  // Show empty state if no accounts exist
+  if (accounts.length === 0 && !editMode) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl text-center p-6 bg-zinc-50/50 dark:bg-zinc-900/20">
+        <div className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-3">
+          <svg className="h-8 w-8 text-zinc-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
+        </div>
+        <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">No Bank Accounts Yet</h3>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mt-1 mb-4">
+          You need at least one bank account before you can record a transaction.
+        </p>
+        <CreateAccountDrawer>
+          <button type="button" className="text-xs font-semibold bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 px-4 py-2 rounded-md hover:bg-zinc-800 dark:hover:bg-white transition-colors">
+            + Create Your First Account
+          </button>
+        </CreateAccountDrawer>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -183,7 +203,7 @@ export function AddTransactionForm({
         <div className="p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-950/20 dark:to-zinc-950 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
-              className={`p-2 rounded-full ₹{
+              className={`p-2 rounded-full ${
                 isListening
                   ? "bg-rose-500 text-white animate-pulse"
                   : "bg-emerald-600 text-white dark:bg-emerald-500"
@@ -208,7 +228,7 @@ export function AddTransactionForm({
           <Button
             type="button"
             size="sm"
-            className={`h-8 text-xs font-semibold ₹{
+            className={`h-8 text-xs font-semibold ${
               isListening
                 ? "bg-rose-600 text-white hover:bg-rose-700"
                 : "bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -268,8 +288,8 @@ export function AddTransactionForm({
         <div className="space-y-2">
           <label className="text-sm font-medium">Account</label>
           <Select
-            onValueChange={(value) => setValue("accountId", value)}
-            value={accountId}
+            onValueChange={(value) => setValue("bankAccountId", value)}
+            value={bankAccountId}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select account" />
@@ -277,12 +297,12 @@ export function AddTransactionForm({
             <SelectContent>
               {accounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
-                  {account.name} (${parseFloat(account.balance).toFixed(2)})
+                  {account.name} (₹{parseFloat(account.balance).toFixed(2)})
                 </SelectItem>
               ))}
               <CreateAccountDrawer
                 onAccountCreated={(account) =>
-                  setValue("accountId", account.id, { shouldValidate: true })
+                  setValue("bankAccountId", account.id, { shouldValidate: true })
                 }
               >
                 <Button
@@ -294,8 +314,8 @@ export function AddTransactionForm({
               </CreateAccountDrawer>
             </SelectContent>
           </Select>
-          {errors.accountId && (
-            <p className="text-sm text-red-500">{errors.accountId.message}</p>
+          {errors.bankAccountId && (
+            <p className="text-sm text-red-500">{errors.bankAccountId.message}</p>
           )}
         </div>
       </div>

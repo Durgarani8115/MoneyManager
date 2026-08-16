@@ -85,9 +85,6 @@ export function AiChatButton() {
               </div>
               <div>
                 <p className="text-sm font-bold leading-none">Trakex AI Advisor</p>
-                <p className="text-[10px] text-emerald-100 mt-0.5">
-                  Powered by Gemini 1.5
-                </p>
               </div>
             </div>
             <Button

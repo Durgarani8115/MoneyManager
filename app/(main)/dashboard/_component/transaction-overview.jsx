@@ -56,7 +56,7 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export function DashboardOverview({ accounts, transactions }) {
-  const [selectedAccountId, setSelectedAccountId] = useState(
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState(
     accounts.find((a) => a.isDefault)?.id || accounts[0]?.id
   );
   const [dateRange, setDateRange] = useState("1M");
@@ -77,8 +77,8 @@ export function DashboardOverview({ accounts, transactions }) {
 
   // Filter by selected account for recent transactions panel
   const accountTransactions = useMemo(
-    () => dateFilteredTransactions.filter((t) => t.accountId === selectedAccountId),
-    [dateFilteredTransactions, selectedAccountId]
+    () => dateFilteredTransactions.filter((t) => t.bankAccountId === selectedBankAccountId),
+    [dateFilteredTransactions, selectedBankAccountId]
   );
 
   // Recent 5 for this account in the chosen date range
@@ -162,7 +162,7 @@ export function DashboardOverview({ accounts, transactions }) {
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Recent Transactions
             </CardTitle>
-            <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+            <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
               <SelectTrigger className="w-[140px] text-xs">
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>

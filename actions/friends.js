@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { requireDbUser } from "@/lib/checkUser";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 const UPI_REGEX = /^[\w.\-]+@[\w]+$/;
@@ -11,7 +11,9 @@ const UPI_REGEX = /^[\w.\-]+@[\w]+$/;
  */
 export async function getUserFriends() {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     if (!db.friend) {
       throw new Error("Database client updated. Please restart your dev server (Ctrl+C and npm run dev).");
@@ -36,7 +38,9 @@ export async function getUserFriends() {
  */
 export async function createFriend(data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     if (!db.friend) {
       throw new Error("Database client updated. Please restart your dev server (Ctrl+C and npm run dev).");
@@ -77,7 +81,9 @@ export async function createFriend(data) {
  */
 export async function updateFriend(friendId, data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     if (!db.friend) {
       throw new Error("Database client updated. Please restart your dev server (Ctrl+C and npm run dev).");
@@ -140,7 +146,9 @@ export async function updateFriend(friendId, data) {
  */
 export async function deleteFriend(friendId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     if (!db.friend) {
       throw new Error("Database client updated. Please restart your dev server (Ctrl+C and npm run dev).");

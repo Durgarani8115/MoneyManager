@@ -1,42 +1,40 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { requireDbUser } from "@/lib/checkUser";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 const serializeTransaction = (obj) => {
   const serialized = { ...obj };
   if (obj.balance !== undefined && obj.balance !== null) {
-    serialized.balance = parseFloat(obj.balance);
+    serialized.balance = obj.balance.toNumber ? obj.balance.toNumber() : parseFloat(obj.balance);
   }
   if (obj.amount !== undefined && obj.amount !== null) {
-    serialized.amount = parseFloat(obj.amount);
+    serialized.amount = obj.amount.toNumber ? obj.amount.toNumber() : parseFloat(obj.amount);
   }
   return serialized;
 };
 
-export async function updateDefaultAccount(accountId) {
+export async function updateDefaultAccount(bankAccountId) {
   try {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
-
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     // Unset any existing default accounts for this user
-    await db.account.updateMany({
+    await db.bankAccount.updateMany({
       where: { userId: user.id, isDefault: true },
       data: { isDefault: false },
     });
 
     // Ensure the account exists and belongs to the user
-    const existing = await db.account.findUnique({ where: { id: accountId } });
+    const existing = await db.bankAccount.findUnique({ where: { id: bankAccountId } });
     if (!existing || existing.userId !== user.id) {
       throw new Error("Account not found");
     }
 
-    const account = await db.account.update({
-      where: { id: accountId },
+    const account = await db.bankAccount.update({
+      where: { id: bankAccountId },
       data: { isDefault: true },
     });
 
@@ -48,26 +46,28 @@ export async function updateDefaultAccount(accountId) {
   }
 }
 
-export async function updateAccount(accountId, data) {
+export async function updateAccount(bankAccountId, data) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     // Verify ownership
-    const existing = await db.account.findUnique({ where: { id: accountId } });
+    const existing = await db.bankAccount.findUnique({ where: { id: bankAccountId } });
     if (!existing || existing.userId !== user.id) {
       throw new Error("Account not found");
     }
 
     // If setting as default, unset all other defaults first
     if (data.isDefault) {
-      await db.account.updateMany({
+      await db.bankAccount.updateMany({
         where: { userId: user.id, isDefault: true },
         data: { isDefault: false },
       });
     }
 
-    const account = await db.account.update({
-      where: { id: accountId },
+    const account = await db.bankAccount.update({
+      where: { id: bankAccountId },
       data: {
         name: data.name,
         type: data.type,
@@ -77,7 +77,7 @@ export async function updateAccount(accountId, data) {
 
     revalidatePath("/", "layout");
     revalidatePath("/accounts");
-    revalidatePath(`/account/${accountId}`);
+    revalidatePath(`/account/${bankAccountId}`);
 
     return { success: true, data: serializeTransaction(account) };
   } catch (error) {
@@ -85,27 +85,29 @@ export async function updateAccount(accountId, data) {
   }
 }
 
-export async function deleteAccount(accountId) {
+export async function deleteAccount(bankAccountId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     // Verify ownership
-    const existing = await db.account.findUnique({ where: { id: accountId } });
+    const existing = await db.bankAccount.findUnique({ where: { id: bankAccountId } });
     if (!existing || existing.userId !== user.id) {
       throw new Error("Account not found");
     }
 
     // Delete account (cascade deletes all linked transactions)
-    await db.account.delete({ where: { id: accountId } });
+    await db.bankAccount.delete({ where: { id: bankAccountId } });
 
     // If deleted account was default, auto-assign the next available one
     if (existing.isDefault) {
-      const nextAccount = await db.account.findFirst({
+      const nextAccount = await db.bankAccount.findFirst({
         where: { userId: user.id },
         orderBy: { createdAt: "asc" },
       });
       if (nextAccount) {
-        await db.account.update({
+        await db.bankAccount.update({
           where: { id: nextAccount.id },
           data: { isDefault: true },
         });
@@ -121,11 +123,13 @@ export async function deleteAccount(accountId) {
   }
 }
 
-export async function getAccountWithTransaction(accountId) {
-  const user = await requireDbUser();
+export async function getAccountWithTransaction(bankAccountId) {
+  const session = await auth();
+  if (!session?.user) throw new Error("Unauthorized");
+  const user = session.user;
 
-  const account = await db.account.findFirst({
-    where: { id: accountId, userId: user.id },
+  const account = await db.bankAccount.findFirst({
+    where: { id: bankAccountId, userId: user.id },
     include: {
       transactions: {
         orderBy: { date: "desc" },
@@ -146,7 +150,9 @@ export async function getAccountWithTransaction(accountId) {
 
 export async function bulkDeleteTransactions(transactionIds) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
     const transactions = await db.transaction.findMany({
       where: {
@@ -158,7 +164,7 @@ export async function bulkDeleteTransactions(transactionIds) {
     const accountBalanceChanges = transactions.reduce((acc, transaction) => {
       const amount = transaction.amount.toNumber();
       const change = transaction.type === "EXPENSE" ? amount : -amount;
-      acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
+      acc[transaction.bankAccountId] = (acc[transaction.bankAccountId] || 0) + change;
       return acc;
     }, {});
 
@@ -167,17 +173,17 @@ export async function bulkDeleteTransactions(transactionIds) {
       await tx.transaction.deleteMany({
         where: { id: { in: transactionIds }, userId: user.id },
       });
-      for (const [accountId, balanceChange] of Object.entries(accountBalanceChanges)) {
-        await tx.account.updateMany({
-          where: { id: accountId, userId: user.id },
+      for (const [bankAccountId, balanceChange] of Object.entries(accountBalanceChanges)) {
+        await tx.bankAccount.updateMany({
+          where: { id: bankAccountId, userId: user.id },
           data: { balance: { increment: balanceChange } },
         });
       }
     });
 
     revalidatePath("/", "layout");
-    for (const accountId of Object.keys(accountBalanceChanges)) {
-      revalidatePath(`/account/${accountId}`);
+    for (const bankAccountId of Object.keys(accountBalanceChanges)) {
+      revalidatePath(`/account/${bankAccountId}`);
     }
 
     return { success: true };

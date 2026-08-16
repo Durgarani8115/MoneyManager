@@ -1,18 +1,19 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { db } from "@/lib/prisma";
-import { requireDbUser } from "@/lib/checkUser";
 import { revalidatePath } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 
-export async function getCurrentBudget(accountId) {
+export async function getCurrentBudget(bankAccountId) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error("Unauthorized");
 
     const budget = await db.budget.findFirst({
       where: {
-        userId: user.id,
+        userId: userId,
       },
     });
 
@@ -34,13 +35,13 @@ export async function getCurrentBudget(accountId) {
 
     const expenses = await db.transaction.aggregate({
       where: {
-        userId: user.id,
+        userId: userId,
         type: "EXPENSE",
         date: {
           gte: startOfMonth,
           lte: endOfMonth,
         },
-        ...(accountId ? { accountId } : {}),
+        ...(bankAccountId ? { bankAccountId } : {}),
       },
       _sum: {
         amount: true,
@@ -61,20 +62,19 @@ export async function getCurrentBudget(accountId) {
 
 export async function updateBudget(amount) {
   try {
-    const { userId } = await auth();
+    const session = await auth();
+    const userId = session?.user?.id;
     if (!userId) throw new Error("Unauthorized");
-
-    const user = await requireDbUser();
 
     const budget = await db.budget.upsert({
       where: {
-        userId: user.id,
+        userId: userId,
       },
       update: {
         amount,
       },
       create: {
-        userId: user.id,
+        userId: userId,
         amount,
       },
     });
@@ -95,11 +95,13 @@ export async function updateBudget(amount) {
  */
 export async function getCategoryBudgets() {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error("Unauthorized");
 
     // 1. Fetch saved limits
     const categoryBudgets = await db.categoryBudget.findMany({
-      where: { userId: user.id },
+      where: { userId: userId },
     });
 
     // 2. Calculate current month start and end
@@ -111,7 +113,7 @@ export async function getCategoryBudgets() {
     const currentMonthExpenses = await db.transaction.groupBy({
       by: ["category"],
       where: {
-        userId: user.id,
+        userId: userId,
         type: "EXPENSE",
         date: {
           gte: startOfMonth,
@@ -148,7 +150,10 @@ export async function getCategoryBudgets() {
  */
 export async function setCategoryBudget(category, amount) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error("Unauthorized");
+
     const limitNum = parseFloat(amount);
 
     if (isNaN(limitNum) || limitNum <= 0) {
@@ -158,7 +163,7 @@ export async function setCategoryBudget(category, amount) {
     const categoryBudget = await db.categoryBudget.upsert({
       where: {
         userId_category: {
-          userId: user.id,
+          userId: userId,
           category,
         },
       },
@@ -166,7 +171,7 @@ export async function setCategoryBudget(category, amount) {
         amount: limitNum,
       },
       create: {
-        userId: user.id,
+        userId: userId,
         category,
         amount: limitNum,
       },
@@ -188,11 +193,13 @@ export async function setCategoryBudget(category, amount) {
  */
 export async function deleteCategoryBudget(category) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error("Unauthorized");
 
     await db.categoryBudget.deleteMany({
       where: {
-        userId: user.id,
+        userId: userId,
         category,
       },
     });

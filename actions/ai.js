@@ -1,6 +1,6 @@
 "use server";
 
-import { requireDbUser } from "@/lib/checkUser";
+import { auth } from "@/auth";
 import { db } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { defaultCategories } from "@/data/categories";
@@ -21,7 +21,7 @@ export async function predictCategory(description) {
     }
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const categoriesList = defaultCategories
       .filter((c) => c.type === "EXPENSE")
@@ -60,9 +60,11 @@ export async function predictCategory(description) {
  */
 export async function getDashboardAIInsights() {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
-    const accounts = (await db.account?.findMany({ where: { userId: user.id } })) || [];
+    const accounts = (await db.bankAccount?.findMany({ where: { userId: user.id } })) || [];
     const goals = db.goal ? await db.goal.findMany({ where: { userId: user.id } }) : [];
 
     const now = new Date();
@@ -91,7 +93,7 @@ export async function getDashboardAIInsights() {
       }, {});
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       Analyze this user's current month financial summary and provide 3 short, friendly, actionable insights (max 1-2 sentences each).
@@ -131,9 +133,11 @@ export async function getDashboardAIInsights() {
  */
 export async function chatWithAIAdvisor(messages) {
   try {
-    const user = await requireDbUser();
+    const session = await auth();
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user;
 
-    const accounts = (await db.account?.findMany({ where: { userId: user.id } })) || [];
+    const accounts = (await db.bankAccount?.findMany({ where: { userId: user.id } })) || [];
     const goals = db.goal ? await db.goal.findMany({ where: { userId: user.id } }) : [];
 
     const now = new Date();
@@ -165,7 +169,7 @@ export async function chatWithAIAdvisor(messages) {
     `;
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const systemPrompt = `
       You are Trakex AI — an expert, friendly personal finance advisor. 
@@ -209,7 +213,7 @@ export async function parseVoiceTransaction(transcript) {
       .join(", ");
 
     const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       You are an AI speech parser for a financial app. Convert this spoken text into structured JSON.
