@@ -64,7 +64,7 @@ export async function GoalsSummary() {
                       {goal.name}
                     </span>
                     <span className="font-bold text-zinc-700 dark:text-zinc-300 shrink-0">
-                      ${goal.currentAmount.toFixed(2)} / ${goal.targetAmount.toFixed(2)} ({actualPercent.toFixed(0)}%)
+                      ₹{goal.currentAmount.toFixed(2)} / ₹{goal.targetAmount.toFixed(2)} ({actualPercent.toFixed(0)}%)
                     </span>
                   </div>
                   <Progress

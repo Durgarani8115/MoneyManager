@@ -99,25 +99,25 @@ export function AccountChart({ transactions }) {
           <div className="text-center">
             <p className="text-zinc-500 dark:text-zinc-400">Total Income</p>
             <p className="text-lg font-extrabold text-emerald-500">
-              ${totals.income.toFixed(2)}
+              ₹{totals.income.toFixed(2)}
             </p>
           </div>
           <div className="text-center">
             <p className="text-zinc-500 dark:text-zinc-400">Total Expenses</p>
             <p className="text-lg font-extrabold text-rose-500">
-              ${totals.expense.toFixed(2)}
+              ₹{totals.expense.toFixed(2)}
             </p>
           </div>
           <div className="text-center">
             <p className="text-zinc-500 dark:text-zinc-400">Net</p>
             <p
-              className={`text-lg font-extrabold ${
+              className={`text-lg font-extrabold ₹{
                 totals.income - totals.expense >= 0
                   ? "text-emerald-500"
                   : "text-rose-500"
               }`}
             >
-              ${(totals.income - totals.expense).toFixed(2)}
+              ₹{(totals.income - totals.expense).toFixed(2)}
             </p>
           </div>
         </div>
@@ -138,10 +138,10 @@ export function AccountChart({ transactions }) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value}`}
+                tickFormatter={(value) => `₹${value}`}
               />
               <Tooltip
-                formatter={(value) => [`$${value}`, undefined]}
+                formatter={(value) => [`₹${value}`, undefined]}
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",

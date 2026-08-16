@@ -170,7 +170,7 @@ export function AddTransactionForm({
 
     if (res?.success && res.category) {
       setValue("category", res.category);
-      toast.success(`AI selected category: ${res.categoryName}`);
+      toast.success(`AI selected category: ₹{res.categoryName}`);
     } else {
       toast.error("Could not predict category");
     }
@@ -183,7 +183,7 @@ export function AddTransactionForm({
         <div className="p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-950/20 dark:to-zinc-950 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
-              className={`p-2 rounded-full ${
+              className={`p-2 rounded-full ₹{
                 isListening
                   ? "bg-rose-500 text-white animate-pulse"
                   : "bg-emerald-600 text-white dark:bg-emerald-500"
@@ -208,7 +208,7 @@ export function AddTransactionForm({
           <Button
             type="button"
             size="sm"
-            className={`h-8 text-xs font-semibold ${
+            className={`h-8 text-xs font-semibold ₹{
               isListening
                 ? "bg-rose-600 text-white hover:bg-rose-700"
                 : "bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -313,7 +313,7 @@ export function AddTransactionForm({
               onClick={handleAiPredict}
               disabled={aiPredicting}
             >
-              <Sparkles className={`h-3 w-3 ${aiPredicting ? "animate-spin" : ""}`} />
+              <Sparkles className={`h-3 w-3 ₹{aiPredicting ? "animate-spin" : ""}`} />
               {aiPredicting ? "Predicting..." : "Auto-Categorize with AI"}
             </Button>
           )}

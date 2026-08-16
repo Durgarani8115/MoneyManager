@@ -46,7 +46,7 @@ export function AiInsightsCard() {
           onClick={fetchInsights}
           disabled={loading}
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-emerald-500" : ""}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ₹{loading ? "animate-spin text-emerald-500" : ""}`} />
         </Button>
       </CardHeader>
       <CardContent>

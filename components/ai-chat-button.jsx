@@ -105,7 +105,7 @@ export function AiChatButton() {
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`flex gap-2 ${
+                className={`flex gap-2 ₹{
                   m.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
@@ -115,7 +115,7 @@ export function AiChatButton() {
                   </div>
                 )}
                 <div
-                  className={`p-2.5 rounded-xl max-w-[80%] leading-relaxed ${
+                  className={`p-2.5 rounded-xl max-w-[80%] leading-relaxed ₹{
                     m.role === "user"
                       ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium"
                       : "bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-200/60 dark:border-zinc-800"

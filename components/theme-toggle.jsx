@@ -24,7 +24,7 @@ export function ThemeToggle({ className = "" }) {
 
   if (!mounted) {
     return (
-      <Button variant="outline" size="icon" className={`h-9 w-9 border-zinc-300 dark:border-zinc-700 ${className}`} disabled>
+      <Button variant="outline" size="icon" className={`h-9 w-9 border-zinc-300 dark:border-zinc-700 ₹{className}`} disabled>
         <Sun className="h-4 w-4" />
       </Button>
     );
@@ -39,7 +39,7 @@ export function ThemeToggle({ className = "" }) {
           variant="outline"
           size="icon"
           onClick={() => setTheme(isDark ? "light" : "dark")}
-          className={`h-9 w-9 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 transition-all ${className}`}
+          className={`h-9 w-9 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 transition-all ₹{className}`}
           aria-label="Toggle Theme"
         >
           {isDark ? (

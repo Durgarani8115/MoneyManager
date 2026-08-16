@@ -171,7 +171,7 @@ export function CategoryBudgets({ initialBudgets = [] }) {
 
                     <div className="flex items-baseline justify-between text-xs">
                       <span className="font-semibold text-zinc-600 dark:text-zinc-400">
-                        ${b.spent.toFixed(2)} / ${b.limit.toFixed(2)}
+                        ₹{b.spent.toFixed(2)} / ₹{b.limit.toFixed(2)}
                       </span>
                       <span className="font-bold text-zinc-900 dark:text-zinc-100">
                         {percent.toFixed(0)}%

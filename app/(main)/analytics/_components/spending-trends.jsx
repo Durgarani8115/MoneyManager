@@ -70,10 +70,10 @@ export function SpendingTrends({ transactions = [] }) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(val) => `$${val}`}
+                tickFormatter={(val) => `₹${val}`}
               />
               <Tooltip
-                formatter={(val) => [`$${val.toFixed(2)}`, undefined]}
+                formatter={(val) => [`₹${val.toFixed(2)}`, undefined]}
                 contentStyle={{
                   backgroundColor: "hsl(var(--popover))",
                   border: "1px solid hsl(var(--border))",

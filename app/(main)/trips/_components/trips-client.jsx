@@ -127,10 +127,10 @@ export function TripsClient({ initialTrips = [] }) {
                     <div className="flex items-baseline justify-between pt-1">
                       <div>
                         <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-                          ${trip.totalSpent.toFixed(2)}
+                          ₹{trip.totalSpent.toFixed(2)}
                         </span>
                         <span className="text-xs text-zinc-500 ml-1 font-medium">
-                          spent of ${trip.budget.toFixed(2)}
+                          spent of ₹{trip.budget.toFixed(2)}
                         </span>
                       </div>
                       {isOverBudget ? (

@@ -243,7 +243,7 @@ export function ConfirmDialog({
                 "transition-colors"
               )}
               placeholder={requireTextToConfirm}
-              aria-label={`Type ${requireTextToConfirm} to confirm`}
+              aria-label={`Type ₹{requireTextToConfirm} to confirm`}
             />
           </div>
         )}

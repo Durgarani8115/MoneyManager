@@ -23,10 +23,12 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import CreateAccountDrawer from "@/components/create-account-drawer";
 
+import { AccountFilter } from "./_component/account-filter";
+
 export const dynamic = "force-dynamic";
 
 // --- Helper to compute monthly stats from raw transactions ---
-function computeStats(accounts, transactions) {
+function computeStats(accounts, transactions, selectedAccountId) {
   const now = new Date();
   const thisMonth = transactions.filter((t) => {
     const d = new Date(t.date);
@@ -35,7 +37,12 @@ function computeStats(accounts, transactions) {
     );
   });
 
-  const netWorth = accounts.reduce((sum, a) => sum + parseFloat(a.balance), 0);
+  const selectedAccount = selectedAccountId
+    ? accounts.find((a) => a.id === selectedAccountId)
+    : null;
+
+  const netWorth = selectedAccount ? parseFloat(selectedAccount.balance) : 0;
+
   const monthlyIncome = thisMonth
     .filter((t) => t.type === "INCOME")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -44,24 +51,34 @@ function computeStats(accounts, transactions) {
     .reduce((sum, t) => sum + t.amount, 0);
   const netSavings = monthlyIncome - monthlyExpense;
 
-  return { netWorth, monthlyIncome, monthlyExpense, netSavings };
+  return { netWorth, monthlyIncome, monthlyExpense, netSavings, selectedAccount };
 }
 
-async function DashboardPage() {
+async function DashboardPage({ searchParams }) {
   try {
     const accounts = await getUserAccounts();
     const defaultAccount = accounts.find((a) => a.isDefault);
-    const transactions = await getDashboardData();
+    
+    // Resolve searchParams (Next.js 15 requires awaiting searchParams)
+    const searchParamsObj = await searchParams;
+    let selectedAccountId = searchParamsObj?.accountId || (defaultAccount ? defaultAccount.id : (accounts.length > 0 ? accounts[0].id : null));
 
-    let budgetData = null;
-    if (defaultAccount) {
-      budgetData = await getCurrentBudget(defaultAccount.id);
+    // Validate if the selected account actually exists
+    if (selectedAccountId && !accounts.some((a) => a.id === selectedAccountId)) {
+      selectedAccountId = defaultAccount ? defaultAccount.id : (accounts.length > 0 ? accounts[0].id : null);
     }
 
-    const { netWorth, monthlyIncome, monthlyExpense, netSavings } =
-      computeStats(accounts, transactions);
+    const transactions = selectedAccountId ? await getDashboardData(selectedAccountId) : [];
 
-    // Last 5 transactions across ALL accounts, sorted by date
+    let budgetData = null;
+    if (selectedAccountId) {
+      budgetData = await getCurrentBudget(selectedAccountId);
+    }
+
+    const { netWorth, monthlyIncome, monthlyExpense, netSavings, selectedAccount } =
+      computeStats(accounts, transactions, selectedAccountId);
+
+    // Last 5 transactions for the selected account, sorted by date
     const recentTransactions = [...transactions]
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .slice(0, 5);
@@ -69,13 +86,16 @@ async function DashboardPage() {
     return (
       <div className="space-y-6">
         {/* ── Page Header ── */}
-        <div className="pb-2 border-b border-zinc-200 dark:border-zinc-800">
-          <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight gradient-title">
-            Dashboard
-          </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Your financial snapshot — net worth, monthly health, and goals.
-          </p>
+        <div className="pb-2 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight gradient-title">
+              Dashboard
+            </h1>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Your financial snapshot — {selectedAccount ? selectedAccount.name : "net worth"}, monthly health, and goals.
+            </p>
+          </div>
+          {accounts.length > 0 && <AccountFilter accounts={accounts} />}
         </div>
 
         {/* ── Quick Actions Bar ── */}
@@ -123,21 +143,21 @@ async function DashboardPage() {
 
         {/* ── Net Worth + Monthly Stats Cards ── */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          {/* Net Worth */}
+          {/* Net Worth (Account Balance) */}
           <Card className="col-span-2 lg:col-span-1 border-zinc-200/80 dark:border-zinc-800 shadow-xs relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/5 dark:from-zinc-100/5 to-transparent pointer-events-none" />
             <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Net Worth
+                Account Balance
               </CardTitle>
               <Wallet className="h-4 w-4 text-zinc-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-                ${netWorth.toFixed(2)}
+                ₹{netWorth.toFixed(2)}
               </div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Across {accounts.length} account{accounts.length !== 1 ? "s" : ""}
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+                {selectedAccount ? selectedAccount.name : "No account selected"}
               </p>
             </CardContent>
           </Card>
@@ -153,7 +173,7 @@ async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">
-                +${monthlyIncome.toFixed(2)}
+                +₹{monthlyIncome.toFixed(2)}
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 This month
@@ -172,7 +192,7 @@ async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-black text-rose-600 dark:text-rose-400 tracking-tighter">
-                -${monthlyExpense.toFixed(2)}
+                -₹{monthlyExpense.toFixed(2)}
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 This month
@@ -207,7 +227,7 @@ async function DashboardPage() {
                     : "text-amber-600 dark:text-amber-400"
                 )}
               >
-                {netSavings >= 0 ? "+" : ""}${netSavings.toFixed(2)}
+                {netSavings >= 0 ? "+" : ""}₹{netSavings.toFixed(2)}
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 This month
@@ -218,10 +238,11 @@ async function DashboardPage() {
 
         {/* ── Goals Summary & Budget Health Row ── */}
         <div className="grid gap-6 md:grid-cols-2">
-          {defaultAccount && (
+          {selectedAccount && (
             <BudgetProgress
               initialBudget={budgetData?.budget}
               currentExpenses={budgetData?.currentExpenses || 0}
+              accountName={selectedAccount.name}
             />
           )}
           <GoalsSummary />
@@ -230,15 +251,15 @@ async function DashboardPage() {
         {/* ── AI Insights Card ── */}
         <AiInsightsCard />
 
-        {/* ── Recent Activity (Global — All Accounts) ── */}
+        {/* ── Recent Activity (Selected Account) ── */}
         <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
               <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                Recent Activity
+                Recent Activity {selectedAccount ? `(${selectedAccount.name})` : ""}
               </CardTitle>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Latest transactions across all your accounts
+                Latest transactions for this account
               </p>
             </div>
             <Link href="/transaction/create">

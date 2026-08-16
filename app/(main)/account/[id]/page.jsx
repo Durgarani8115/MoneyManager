@@ -81,7 +81,7 @@ export default async function AccountPage({ params }) {
           {/* Balance display */}
           <div className="text-right">
             <div className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-              ${parseFloat(account.balance).toFixed(2)}
+              ₹{parseFloat(account.balance).toFixed(2)}
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Current Balance

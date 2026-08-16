@@ -29,7 +29,7 @@ export function UpiPayButton({
   const handleClick = (e) => {
     if (!upiId) {
       e.preventDefault();
-      toast.error(`No UPI ID saved for ${name}. Add their UPI ID in Friends page.`);
+      toast.error(`No UPI ID saved for ₹{name}. Add their UPI ID in Friends page.`);
       return;
     }
 
@@ -49,7 +49,7 @@ export function UpiPayButton({
                 size={size}
                 variant="outline"
                 disabled
-                className={`text-xs opacity-60 cursor-not-allowed ${className}`}
+                className={`text-xs opacity-60 cursor-not-allowed ₹{className}`}
               >
                 <Smartphone className="h-3.5 w-3.5 mr-1" />
                 Pay via UPI
@@ -71,7 +71,7 @@ export function UpiPayButton({
           <Button
             size={size}
             variant={variant}
-            className={`text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs gap-1 ${className}`}
+            className={`text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs gap-1 ₹{className}`}
           >
             <Smartphone className="h-3.5 w-3.5" />
             Pay via UPI
@@ -83,7 +83,7 @@ export function UpiPayButton({
           size={size}
           variant={variant}
           onClick={handleClick}
-          className={`text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs gap-1.5 ${className}`}
+          className={`text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs gap-1.5 ₹{className}`}
         >
           <Smartphone className="h-3.5 w-3.5" />
           Pay via UPI

@@ -123,13 +123,18 @@ export async function createAccount(data) {
   }
 }
 
-export async function getDashboardData() {
+export async function getDashboardData(accountId) {
   try {
     const user = await requireDbUser();
 
-    // Get all user transactions
+    // Get all user transactions, optionally filtered by accountId
+    const where = { userId: user.id };
+    if (accountId) {
+      where.accountId = accountId;
+    }
+
     const transactions = await db.transaction.findMany({
-      where: { userId: user.id },
+      where,
       orderBy: { date: "desc" },
     });
 

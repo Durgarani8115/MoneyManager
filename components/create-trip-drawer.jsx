@@ -101,7 +101,7 @@ export function CreateTripDrawer({ open, onOpenChange, onSuccess }) {
             {/* Budget */}
             <div className="space-y-1.5">
               <label htmlFor="trip-budget" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Total Budget ($)
+                Total Budget (₹)
               </label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />

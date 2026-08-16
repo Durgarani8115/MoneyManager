@@ -37,7 +37,7 @@ export function FriendsClient({ initialFriends = [] }) {
 
   const handleDelete = async (friend) => {
     const ok = await confirm({
-      title: `Delete ${friend.name}?`,
+      title: `Delete ₹{friend.name}?`,
       description: "This contact will be removed from your friends list. Past expense splits will remain intact.",
       variant: "destructive",
       confirmLabel: "Delete Contact",

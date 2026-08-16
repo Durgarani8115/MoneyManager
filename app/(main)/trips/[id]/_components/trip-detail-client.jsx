@@ -337,7 +337,7 @@ export function TripDetailClient({ trip: initialTrip }) {
               onClick={handleGenerateAiPlan}
               disabled={aiLoading}
             >
-              <Sparkles className={`h-3.5 w-3.5 ${aiLoading ? "animate-spin" : ""}`} />
+              <Sparkles className={`h-3.5 w-3.5 ₹{aiLoading ? "animate-spin" : ""}`} />
               {aiLoading ? "AI Planning..." : "Generate AI Trip Plan"}
             </Button>
           </div>
@@ -347,10 +347,10 @@ export function TripDetailClient({ trip: initialTrip }) {
             <div className="flex items-baseline justify-between text-xs">
               <div>
                 <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-                  ${trip.totalSpent.toFixed(2)}
+                  ₹{trip.totalSpent.toFixed(2)}
                 </span>
                 <span className="text-zinc-500 ml-1.5 font-medium">
-                  spent of ${trip.budget.toFixed(2)} budget
+                  spent of ₹{trip.budget.toFixed(2)} budget
                 </span>
               </div>
               <span className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -369,7 +369,7 @@ export function TripDetailClient({ trip: initialTrip }) {
           {isOverBudget && (
             <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 flex items-center justify-between text-xs text-rose-700 dark:text-rose-400">
               <span>
-                ⚠️ You are <strong>${(trip.totalSpent - trip.budget).toFixed(2)}</strong> over your planned budget!
+                ⚠️ You are <strong>₹{(trip.totalSpent - trip.budget).toFixed(2)}</strong> over your planned budget!
               </span>
               <Button
                 variant="outline"
@@ -514,7 +514,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                       <Square className="h-4 w-4 text-zinc-400 shrink-0" />
                     )}
                     <span
-                      className={`truncate ${
+                      className={`truncate ₹{
                         place.visited
                           ? "line-through text-zinc-400 dark:text-zinc-500"
                           : "text-zinc-900 dark:text-zinc-100"
@@ -527,7 +527,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                   <div className="flex items-center gap-3 shrink-0">
                     {place.estimatedCost > 0 && (
                       <span className="text-xs font-semibold text-zinc-500">
-                        Est. ${place.estimatedCost.toFixed(2)}
+                        Est. ₹{place.estimatedCost.toFixed(2)}
                       </span>
                     )}
                     <Button
@@ -583,7 +583,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                       variant="outline"
                       className="text-xs bg-white dark:bg-zinc-800 font-semibold border-zinc-300 dark:border-zinc-700"
                     >
-                      {person}: ${total.toFixed(2)}
+                      {person}: ₹{total.toFixed(2)}
                     </Badge>
                   ))}
                 </div>
@@ -628,7 +628,7 @@ export function TripDetailClient({ trip: initialTrip }) {
 
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400">
-                            -${exp.amount.toFixed(2)}
+                            -₹{exp.amount.toFixed(2)}
                           </span>
 
                           {hasSplits && (
@@ -684,7 +684,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                                       upiId={s.friendUpiId}
                                       name={s.friendName}
                                       amount={s.amount}
-                                      note={`Split for ${exp.title}`}
+                                      note={`Split for ₹{exp.title}`}
                                       size="xs"
                                     />
                                   )}
@@ -693,7 +693,7 @@ export function TripDetailClient({ trip: initialTrip }) {
                                     <Button
                                       size="xs"
                                       variant={s.settled ? "outline" : "default"}
-                                      className={`h-6 text-[10px] ${
+                                      className={`h-6 text-[10px] ₹{
                                         s.settled
                                           ? "text-emerald-600 border-emerald-300 dark:border-emerald-800"
                                           : "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
@@ -885,12 +885,12 @@ export function TripDetailClient({ trip: initialTrip }) {
                           onClick={() => toggleParticipant(friend.id)}
                         >
                           <Checkbox
-                            id={`part-${friend.id}`}
+                            id={`part-₹{friend.id}`}
                             checked={selectedFriendIds.includes(friend.id)}
                             onCheckedChange={() => toggleParticipant(friend.id)}
                           />
                           <label
-                            htmlFor={`part-${friend.id}`}
+                            htmlFor={`part-₹{friend.id}`}
                             className="text-xs font-medium text-zinc-900 dark:text-zinc-100 cursor-pointer flex-1 flex items-center justify-between"
                           >
                             <span>{friend.name}</span>

@@ -124,10 +124,10 @@ export function GoalHistoryClient({ goal: initialGoal }) {
             <div className="flex items-baseline justify-between">
               <div>
                 <span className="text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-                  ${goal.currentAmount.toFixed(2)}
+                  ₹{goal.currentAmount.toFixed(2)}
                 </span>
                 <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-2 font-medium">
-                  of ${goal.targetAmount.toFixed(2)} goal
+                  of ₹{goal.targetAmount.toFixed(2)} goal
                 </span>
               </div>
               <span className="text-lg font-extrabold text-zinc-900 dark:text-zinc-100">
@@ -186,7 +186,7 @@ export function GoalHistoryClient({ goal: initialGoal }) {
                         </TableCell>
                         <TableCell className="text-xs">
                           <span
-                            className={`inline-flex items-center gap-1 font-semibold ${
+                            className={`inline-flex items-center gap-1 font-semibold ₹{
                               isAddition
                                 ? "text-emerald-600 dark:text-emerald-400"
                                 : "text-rose-600 dark:text-rose-400"
@@ -201,7 +201,7 @@ export function GoalHistoryClient({ goal: initialGoal }) {
                           </span>
                         </TableCell>
                         <TableCell
-                          className={`text-xs text-right font-bold ${
+                          className={`text-xs text-right font-bold ₹{
                             isAddition
                               ? "text-emerald-600 dark:text-emerald-400"
                               : "text-rose-600 dark:text-rose-400"

@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload }) => {
       <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 p-3 rounded-lg shadow-xl">
         <p className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{payload[0].name}</p>
         <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-          ${payload[0].value.toFixed(2)}
+          ₹{payload[0].value.toFixed(2)}
         </p>
       </div>
     );
@@ -119,13 +119,13 @@ export function DashboardOverview({ accounts, transactions }) {
           <div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Total Income</p>
             <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
-              +${totalIncome.toFixed(2)}
+              +₹{totalIncome.toFixed(2)}
             </p>
           </div>
           <div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Total Expenses</p>
             <p className="text-lg font-black text-rose-600 dark:text-rose-400 tracking-tight">
-              -${totalExpense.toFixed(2)}
+              -₹{totalExpense.toFixed(2)}
             </p>
           </div>
           <div>
@@ -259,7 +259,7 @@ export function DashboardOverview({ accounts, transactions }) {
                       stroke="none"
                     >
                       {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-₹{index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />

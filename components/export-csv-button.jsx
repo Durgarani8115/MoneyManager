@@ -41,7 +41,7 @@ export function ExportCsvButton({ transactions = [], filename = "trakex_transact
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast.success(`Exported ${transactions.length} transactions to CSV`);
+      toast.success(`Exported ₹{transactions.length} transactions to CSV`);
     } catch (err) {
       console.error(err);
       toast.error("Failed to export CSV");

@@ -110,7 +110,7 @@ export function AccountCard({ account }) {
         <Link href={`/account/${id}`} className="block">
           <CardContent>
             <div className="text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-              ${parseFloat(balance).toFixed(2)}
+              ₹{parseFloat(balance).toFixed(2)}
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               {type.charAt(0) + type.slice(1).toLowerCase()} Account

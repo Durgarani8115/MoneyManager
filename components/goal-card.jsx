@@ -135,10 +135,10 @@ export function GoalCard({ goal, onRefresh }) {
           <div className="flex items-baseline justify-between pt-1">
             <div>
               <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tighter">
-                ${currentAmount.toFixed(2)}
+                ₹{currentAmount.toFixed(2)}
               </span>
               <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-1.5 font-medium">
-                saved of ${targetAmount.toFixed(2)}
+                saved of ₹{targetAmount.toFixed(2)}
               </span>
             </div>
             <div className="text-sm font-black text-zinc-900 dark:text-zinc-100">
