@@ -335,21 +335,24 @@ const handleClearFilter=() =>{
                                         {format(new Date(transaction.date), "PP")}
                                     </TableCell>
                                     <TableCell>{transaction.description}</TableCell>
-                                    <TableCell className='capitalize'>
+                                    <TableCell className="capitalize">
                                         <span
                                             style={{
-                                                background: categoryColors[transaction.category],
-
+                                                background: categoryColors[transaction.category] || "#3f3f46",
+                                                color: "#ffffff"
                                             }}
-                                            className="px-2 py-1 rounded text-whitetext-sm  "
-                                        > {transaction.category}  </span> </TableCell>
+                                            className="px-2 py-1 rounded text-white text-xs font-semibold inline-block"
+                                        >
+                                            {transaction.category}
+                                        </span>
+                                    </TableCell>
                                     <TableCell
                                         className="text-right font-semibold"
                                         style={{
                                             color: transaction.type === "EXPENSE" ? "#f43f5e" : "#10b981",
                                         }}
                                     >
-                                        {transaction.type === 'EXPENSE' ? "-" : '+'}$
+                                        {transaction.type === 'EXPENSE' ? "-" : '+'}₹
                                         {transaction.amount.toFixed(2)}</TableCell>
 
                                         <TableCell>{transaction.isRecurring ?(
