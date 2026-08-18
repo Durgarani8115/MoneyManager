@@ -92,11 +92,11 @@ export function CategorySidebar({ user }) {
           <div className="w-8 h-8 rounded-lg bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-black text-lg shadow-xs group-hover:scale-105 transition-transform">
             T
           </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-wider text-emerald-700 dark:text-emerald-400 uppercase leading-none">
-              TRAKEX
+          <div className="flex flex-col text-left">
+            <span className="text-lg font-extrabold tracking-tight text-zinc-900 dark:text-white leading-none">
+              Trak<span className="text-emerald-500">ex</span>
             </span>
-            <span className="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 tracking-widest uppercase mt-0.5">
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
               Money Manager
             </span>
           </div>

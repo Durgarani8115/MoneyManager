@@ -20,14 +20,19 @@ const Header = async () => {
   return (
     <div className='fixed top-0 w-full bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md z-50 border-b border-zinc-200/80 dark:border-zinc-800/80'>
       <nav className='container mx-auto flex py-3.5 px-4 justify-between items-center'>
-        {/* Stylish Trakex Text Logo */}
+        {/* Stylish Trakex Money Manager Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-black text-xl shadow-md tracking-tighter group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-xl bg-emerald-600 dark:bg-emerald-500 text-white flex items-center justify-center font-black text-xl shadow-md tracking-tighter group-hover:scale-105 transition-transform">
             T
           </div>
-          <span className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">
-            Trak<span className="text-zinc-400 dark:text-zinc-500">ex</span>
-          </span>
+          <div className="flex flex-col text-left">
+            <span className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-none">
+              Trak<span className="text-emerald-500">ex</span>
+            </span>
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
+              Money Manager
+            </span>
+          </div>
         </Link>
 
         <div className='flex items-center space-x-3 md:space-x-4'>
