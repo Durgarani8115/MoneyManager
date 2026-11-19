@@ -25,8 +25,7 @@ const forecastKinds = {
     bar: "bg-emerald-500",
   },
   repeating: {
-    label: "Repeat bills",
-    itemLabel: "Repeat bill",
+    label: "Repeating",
     icon: Repeat2,
     color: "text-violet-700 dark:text-violet-300",
     background: "bg-violet-50 dark:bg-violet-950/60",
@@ -60,20 +59,27 @@ function formatRange(start, end) {
   return start === end ? dates.format(new Date(start)) : dates.formatRange(new Date(start), new Date(end));
 }
 
-function categoryName(category) {
-  return categoryNames.get(category) || "Other expenses";
+function categoryName(category, type) {
+  return categoryNames.get(category) || (type === "INCOME" ? "Other income" : "Other expenses");
 }
 
 function itemTitle(item) {
-  return item.kind === "estimate" ? categoryName(item.category) : item.description || categoryName(item.category);
+  const category = categoryName(item.category, item.type);
+  return item.kind === "estimate" ? category : item.description || category;
+}
+
+function formatItemAmount(item) {
+  return item.type === "INCOME" ? "+" + money.format(item.amount) : money.format(-item.amount);
 }
 
 function ForecastItem({ item, accountName, onExclude }) {
   const kind = forecastKinds[item.kind];
   const Icon = kind.icon;
+  const isIncome = item.type === "INCOME";
   const title = itemTitle(item);
-  const category = categoryName(item.category);
-  const subtitle = [kind.itemLabel || kind.label, title.toLowerCase() !== category.toLowerCase() && category, accountName]
+  const category = categoryName(item.category, item.type);
+  const source = item.kind === "repeating" && !isIncome ? "Repeat bill" : kind.itemLabel || kind.label;
+  const subtitle = [isIncome ? "Income" : "Expense", source, title.toLowerCase() !== category.toLowerCase() && category, accountName]
     .filter(Boolean)
     .join(" · ");
   const timing = item.date ? formatRange(item.date, item.endDate || item.date) : "Across the period";
@@ -94,9 +100,13 @@ function ForecastItem({ item, accountName, onExclude }) {
           </span>
           <span className="hidden text-xs text-muted-foreground sm:block">
             {timing}
-            {item.occurrenceCount > 1 && <span className="mt-0.5 block">{item.occurrenceCount} payments</span>}
+            {item.occurrenceCount > 1 && (
+              <span className="mt-0.5 block">{item.occurrenceCount} {isIncome ? "deposits" : "payments"}</span>
+            )}
           </span>
-          <span className="text-right text-sm font-semibold tabular-nums">{money.format(item.amount)}</span>
+          <span className={cn("text-right text-sm font-semibold tabular-nums", isIncome && "text-emerald-700 dark:text-emerald-300")}>
+            {formatItemAmount(item)}
+          </span>
           <ChevronDown aria-hidden="true" className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
         </summary>
         <div className="space-y-3 border-t bg-muted/25 px-4 py-4 sm:px-5">
@@ -109,7 +119,7 @@ function ForecastItem({ item, accountName, onExclude }) {
               {item.evidence.map((entry) => (
                 <li key={entry.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2 text-xs">
                   <span>
-                    {entry.description || categoryName(item.category)}
+                    {entry.description || category}
                     <span className="ml-2 text-muted-foreground">{dates.format(new Date(entry.date))}</span>
                   </span>
                   <span className="ml-auto font-medium tabular-nums">{money.format(entry.amount)}</span>
@@ -132,22 +142,40 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
   const [isPending, startTransition] = useTransition();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [exclusions, setExclusions] = useState({});
-  const { items, startDate, endDate, historyStartDate, historyEndDate, historyCount, hasLimitedHistory, previousPeriod } = forecast;
+  const {
+    items, startDate, endDate, historyStartDate, historyEndDate, historyCount, incomeHistoryCount = 0,
+    hasLimitedHistory, hasLimitedIncomeHistory, previousPeriod,
+  } = forecast;
   const periodKey = startDate + "/" + endDate;
   const excludedIds = exclusions[periodKey] || [];
   const accountNames = new Map(accounts.map((account) => [account.id, account.name]));
-  const categories = [...new Set(items.map((item) => item.category))]
-    .sort((a, b) => categoryName(a).localeCompare(categoryName(b)));
-  const category = categories.includes(selectedCategory) ? selectedCategory : "all";
+  const categories = [...new Map(items.map((item) => [item.category, categoryName(item.category, item.type)]))]
+    .sort(([, a], [, b]) => a.localeCompare(b));
+  const category = categories.some(([id]) => id === selectedCategory) ? selectedCategory : "all";
   const matchingItems = items.filter((item) => category === "all" || item.category === category);
   const excludedItems = matchingItems.filter((item) => excludedIds.includes(item.id));
   const visibleItems = matchingItems.filter((item) => !excludedIds.includes(item.id));
-  const totals = { scheduled: 0, repeating: 0, estimate: 0 };
-  for (const item of visibleItems) totals[item.kind] += Math.round(item.amount * 100);
-  const total = Object.values(totals).reduce((sum, amount) => sum + amount, 0) / 100;
-  const previousTotal = previousPeriod && (category === "all"
-    ? previousPeriod.amount
-    : previousPeriod.totalsByCategory[category] || 0);
+  const totalsByKind = { scheduled: 0, repeating: 0, estimate: 0 };
+  let incomeCents = 0;
+  let expenseCents = 0;
+  for (const item of visibleItems) {
+    const cents = Math.round(item.amount * 100);
+    totalsByKind[item.kind] += cents;
+    if (item.type === "INCOME") incomeCents += cents;
+    else expenseCents += cents;
+  }
+  const hasIncomeForecast = matchingItems.some((item) => item.type === "INCOME");
+  const hasExpenseForecast = matchingItems.some((item) => item.type !== "INCOME");
+  const netCents = incomeCents - expenseCents;
+  const recordedCount = historyCount + incomeHistoryCount;
+  const hasLimitedCoverage = (hasIncomeForecast && hasLimitedIncomeHistory) ||
+    ((!hasIncomeForecast || hasExpenseForecast) && hasLimitedHistory);
+  const previousExpenses = category === "all"
+    ? previousPeriod?.amount
+    : previousPeriod?.totalsByCategory?.[category];
+  const previousIncome = category === "all"
+    ? previousPeriod?.incomeAmount
+    : previousPeriod?.incomeTotalsByCategory?.[category];
 
   function choosePeriod(value) {
     if (period === value) return;
@@ -205,7 +233,7 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All categories</SelectItem>
-                  {categories.map((id) => <SelectItem key={id} value={id}>{categoryName(id)}</SelectItem>)}
+                  {categories.map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -219,18 +247,52 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
             <p className="flex items-center gap-2 text-xs font-medium text-zinc-300">
               <CalendarDays aria-hidden="true" className="size-4" /> {formatRange(startDate, endDate)}
             </p>
-            <h2 className="mt-3 text-sm font-medium text-zinc-300">Expected expenses</h2>
-            <p aria-live="polite" className="mt-1 break-words text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
-              {items.length ? money.format(total) : "—"}
-            </p>
+            <div aria-live="polite" className={cn("mt-3 grid gap-3", hasIncomeForecast && hasExpenseForecast && "sm:grid-cols-2")}>
+              {(!hasIncomeForecast || hasExpenseForecast) && (
+                <div>
+                  <h2 className="text-sm font-medium text-zinc-300">Expected expenses</h2>
+                  <p className="mt-1 break-words text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
+                    {hasExpenseForecast ? money.format(expenseCents / 100) : "—"}
+                  </p>
+                </div>
+              )}
+              {hasIncomeForecast && (
+                <div>
+                  <h2 className="text-sm font-medium text-zinc-300">Expected income</h2>
+                  <p className="mt-1 break-words text-3xl font-semibold tracking-tight text-emerald-300 tabular-nums sm:text-4xl">
+                    {money.format(incomeCents / 100)}
+                  </p>
+                </div>
+              )}
+              {hasIncomeForecast && hasExpenseForecast && (
+                <p className="text-xs text-zinc-300 sm:col-span-2">
+                  Projected net <strong className={cn("ml-1 font-medium tabular-nums", netCents < 0 ? "text-rose-300" : "text-emerald-300")}>
+                    {money.format(netCents / 100)}
+                  </strong>
+                </p>
+              )}
+            </div>
           </div>
-          {previousPeriod?.count > 0 && (
+          {(previousExpenses > 0 || previousIncome > 0) && (
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-t border-zinc-700 pt-3">
               <div>
                 <p className="text-xs font-medium text-zinc-200">Last completed {period}</p>
                 <p className="mt-0.5 text-xs text-zinc-400">{formatRange(previousPeriod.startDate, previousPeriod.endDate)}</p>
               </div>
-              <p className="text-sm font-medium tabular-nums">{money.format(previousTotal)} <span className="text-xs font-normal text-zinc-400">recorded</span></p>
+              <dl className="flex flex-wrap gap-x-4 gap-y-1">
+                {previousExpenses > 0 && (
+                  <div>
+                    <dt className="text-xs text-zinc-400">Expenses</dt>
+                    <dd className="text-sm font-medium tabular-nums">{money.format(previousExpenses)}</dd>
+                  </div>
+                )}
+                {previousIncome > 0 && (
+                  <div>
+                    <dt className="text-xs text-zinc-400">Income</dt>
+                    <dd className="text-sm font-medium tabular-nums">{money.format(previousIncome)}</dd>
+                  </div>
+                )}
+              </dl>
             </div>
           )}
         </section>
@@ -238,16 +300,16 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
         <section className="flex flex-col justify-between gap-4 rounded-xl border bg-card p-5 shadow-xs sm:p-6">
           <div>
             <h2 className="text-sm font-semibold">Forecast mix</h2>
-            {historyCount > 0 && (
+            {recordedCount > 0 && (
               <p className="mt-1 text-xs text-muted-foreground">
-                {historyCount} recorded {historyCount === 1 ? "expense" : "expenses"} · {formatRange(historyStartDate, historyEndDate)}
+                {recordedCount} recorded {recordedCount === 1 ? "transaction" : "transactions"} · {formatRange(historyStartDate, historyEndDate)}
               </p>
             )}
           </div>
           <div>
             <div aria-hidden="true" className="mb-3 flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-muted">
-              {Object.entries(forecastKinds).map(([key, kind]) => totals[key] > 0 && (
-                <div key={key} className={kind.bar} style={{ flexGrow: totals[key], flexBasis: 0 }} />
+              {Object.entries(forecastKinds).map(([key, kind]) => totalsByKind[key] > 0 && (
+                <div key={key} className={kind.bar} style={{ flexGrow: totalsByKind[key], flexBasis: 0 }} />
               ))}
             </div>
             <dl className="grid gap-2 text-xs sm:grid-cols-3">
@@ -257,7 +319,7 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
                     <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", kind.bar)} />
                     {kind.label}
                   </dt>
-                  <dd className="font-semibold tabular-nums sm:mt-1">{money.format(totals[key] / 100)}</dd>
+                  <dd className="font-semibold tabular-nums sm:mt-1">{money.format(totalsByKind[key] / 100)}</dd>
                 </div>
               ))}
             </dl>
@@ -268,12 +330,12 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
       <section className="overflow-hidden rounded-xl border bg-card shadow-xs" aria-labelledby="forecast-items-heading">
         <div className="border-b px-4 py-3.5 sm:px-5">
           <h2 id="forecast-items-heading" className="text-sm font-semibold">Forecast items</h2>
-          {hasLimitedHistory && <p className="mt-1 text-xs text-muted-foreground">Limited history for this forecast. More recorded expenses can improve coverage.</p>}
+          {hasLimitedCoverage && <p className="mt-1 text-xs text-muted-foreground">Limited history for this forecast. More recorded transactions can improve coverage.</p>}
         </div>
         {visibleItems.length ? (
           <>
             <div aria-hidden="true" className="hidden grid-cols-[minmax(0,1fr)_minmax(8rem,0.55fr)_minmax(6rem,auto)_1rem] gap-3 border-b bg-muted/35 px-5 py-2 text-xs text-muted-foreground sm:grid">
-              <span>Expense</span><span>Expected timing</span><span className="text-right">Amount</span>
+              <span>Transaction</span><span>Expected timing</span><span className="text-right">Amount</span>
             </div>
             <ul className="divide-y">
               {visibleItems.map((item) => (
@@ -291,8 +353,8 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
               {excludedItems.length
                 ? "Restore an item below to include it in the total."
                 : accounts.length
-                  ? "Record expenses or set up recurring transactions to build your forecast."
-                  : "Add an account to start recording expenses."}
+                  ? "Record income and expenses or set up recurring transactions to build your forecast."
+                  : "Add an account to start recording transactions."}
             </p>
             {!excludedItems.length && (
               <Button asChild variant="outline" size="sm" className="mt-4">
@@ -313,7 +375,7 @@ export function FutureInsights({ accounts, accountId = "all", period = "month", 
             <ul className="mt-2 divide-y">
               {excludedItems.map((item) => (
                 <li key={item.id} className="flex items-center justify-between gap-2 py-1.5 text-sm">
-                  <span>{itemTitle(item)} <span className="text-xs text-muted-foreground">{money.format(item.amount)}</span></span>
+                  <span>{itemTitle(item)} <span className="text-xs text-muted-foreground">{formatItemAmount(item)}</span></span>
                   <Button type="button" variant="ghost" size="sm" aria-label={"Restore " + itemTitle(item)} onClick={() => toggleExclusion(item.id, false)}>
                     <RotateCcw aria-hidden="true" /> Restore
                   </Button>

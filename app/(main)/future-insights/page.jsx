@@ -31,7 +31,7 @@ export default async function FutureInsightsPage({ searchParams }) {
       where: {
         userId,
         ...(accountId === "all" ? {} : { bankAccountId: accountId }),
-        type: "EXPENSE",
+        type: { in: ["EXPENSE", "INCOME"] },
         status: "COMPLETED",
         OR: [{ isRecurring: true }, { date: { gte: historyStart, lte: now } }],
       },
@@ -57,7 +57,7 @@ export default async function FutureInsightsPage({ searchParams }) {
         <header className="border-b pb-2">
           <h1 className="gradient-title text-2xl font-extrabold tracking-tight">Future Insights</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            See expected expenses from upcoming bills and your past spending.
+            See expected income and expenses based on recurring transactions and your history.
           </p>
         </header>
         <ActivityNavigation current="future-insights" accountId={accountId} />
