@@ -55,7 +55,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export function DashboardOverview({ accounts, transactions, showAccountFilter = true }) {
+export function DashboardOverview({ accounts, transactions, showAccountFilter = true, periodLabel }) {
   const [selectedBankAccountId, setSelectedBankAccountId] = useState(
     accounts.find((a) => a.isDefault)?.id || accounts[0]?.id
   );
@@ -63,6 +63,8 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
 
   // Compute date filter bounds
   const dateFilteredTransactions = useMemo(() => {
+    if (periodLabel) return transactions;
+
     const range = DATE_RANGES[dateRange];
     const now = new Date();
     const startDate = range.days
@@ -73,7 +75,7 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
       const d = new Date(t.date);
       return d >= startDate && d <= endDate;
     });
-  }, [transactions, dateRange]);
+  }, [transactions, dateRange, periodLabel]);
 
   // Filter by selected account for recent transactions panel
   const accountTransactions = useMemo(
@@ -142,18 +144,20 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
         </div>
 
         {/* Date Range Picker */}
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-[160px] border-zinc-300 dark:border-zinc-700 text-sm">
-            <SelectValue placeholder="Select range" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(DATE_RANGES).map(([key, { label }]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!periodLabel && (
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-[160px] border-zinc-300 dark:border-zinc-700 text-sm">
+              <SelectValue placeholder="Select range" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(DATE_RANGES).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* ── Charts Row ── */}
@@ -238,7 +242,7 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Expense Breakdown
               <span className="ml-2 text-xs text-zinc-400 font-normal">
-                ({DATE_RANGES[dateRange].label})
+                ({periodLabel ?? DATE_RANGES[dateRange].label})
               </span>
             </CardTitle>
           </CardHeader>
