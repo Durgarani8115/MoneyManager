@@ -4,6 +4,21 @@ import { auth } from "@/auth";
 import { db } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { defaultCategories } from "@/data/categories";
+import { convertVoiceAmountToInr } from "@/lib/voice-currency";
+import { parseVoiceTransactionFallback } from "@/lib/voice-transaction-fallback";
+
+let voiceQuotaRetryAt = 0;
+
+function rememberVoiceQuotaDelay(error) {
+  const details = Array.isArray(error.errorDetails) ? error.errorDetails : [];
+  const retryInfo = details.find(
+    (detail) => detail?.["@type"] === "type.googleapis.com/google.rpc.RetryInfo"
+  );
+  const delay = retryInfo?.retryDelay;
+  const seconds = /^\d+(?:\.\d+)?s$/.test(delay) ? Number.parseFloat(delay) : 15;
+  const retryAt = Date.now() + Math.max(1, Math.min(seconds, 86400)) * 1000;
+  voiceQuotaRetryAt = Math.max(voiceQuotaRetryAt, retryAt);
+}
 
 function getGenAI() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -200,46 +215,111 @@ export async function chatWithAIAdvisor(messages) {
 
 /**
  * Parse spoken transcript into structured transaction data using Gemini AI
- * e.g. "Spent 50 dollars on groceries at Walmart"
+ * e.g. "Spent 450 on groceries" or "Spent 20 US dollars on a book"
  */
 export async function parseVoiceTransaction(transcript) {
   try {
-    if (!transcript || transcript.trim().length < 2) {
+    if (typeof transcript !== "string" || !transcript.trim()) {
       return { success: false, error: "Speech transcript empty" };
     }
 
-    const categoriesList = defaultCategories
-      .map((c) => `${c.id} (${c.name}, ${c.type})`)
-      .join(", ");
+    let parsed;
+    let aiStatus = 429;
+    if (Date.now() >= voiceQuotaRetryAt) {
+      try {
+        parsed = await parseVoiceWithGemini(transcript);
+      } catch (error) {
+        aiStatus = error?.status;
+        if (aiStatus === 429) {
+          rememberVoiceQuotaDelay(error);
+        } else if (![500, 502, 503, 504].includes(aiStatus)) {
+          throw error;
+        }
+      }
+    }
 
-    const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    if (parsed === undefined) {
+      parsed = parseVoiceTransactionFallback(transcript);
+      if (!parsed) {
+        const quotaExceeded = aiStatus === 429;
+        const reason = quotaExceeded ? "Gemini’s request limit was reached." : "Gemini is temporarily unavailable.";
+        return {
+          success: false,
+          code: quotaExceeded ? "VOICE_AI_QUOTA" : "VOICE_AI_UNAVAILABLE",
+          error: `${reason} Try a simple phrase like “Spent 450 on groceries” or enter the details manually.`,
+        };
+      }
+    }
 
-    const prompt = `
-      You are an AI speech parser for a financial app. Convert this spoken text into structured JSON.
-      Spoken text: "${transcript}"
+    const currency = typeof parsed?.currency === "string" ? parsed.currency.trim().toUpperCase() : "";
+    const originalAmount = String(parsed?.amount ?? "").trim();
+    if (!/^[A-Z]{3}$/.test(currency)) {
+      return {
+        success: false,
+        code: "CURRENCY_CONVERSION_FAILED",
+        error: "Say the full currency name or code, such as US dollars or USD.",
+      };
+    }
+    if (
+      !/^\d+(?:\.\d+)?$/.test(originalAmount) ||
+      !Number.isFinite(Number(originalAmount)) ||
+      Number(originalAmount) <= 0
+    ) {
+      return {
+        success: false,
+        ...(currency === "INR" ? {} : { code: "CURRENCY_CONVERSION_FAILED" }),
+        error: "Say a positive amount for the transaction.",
+      };
+    }
 
-      Available category IDs: ${categoriesList}
+    const { type, description, category } = parsed;
+    const amountOnly = parsed.amountOnly === true;
+    if (currency === "INR") {
+      return {
+        success: true,
+        data: { amount: originalAmount, type, description, category, amountOnly, conversion: null },
+      };
+    }
 
-      Extract:
-      - amount: string number (e.g. "50.00")
-      - type: "EXPENSE" or "INCOME" (default "EXPENSE")
-      - description: brief description (e.g. "Groceries at Walmart")
-      - category: matching category ID from the list (e.g. "groceries")
+    const converted = await convertVoiceAmountToInr(originalAmount, currency);
+    if (converted.error) {
+      return { success: false, code: "CURRENCY_CONVERSION_FAILED", error: converted.error };
+    }
 
-      Return ONLY a raw JSON object formatted like:
-      {"amount": "50.00", "type": "EXPENSE", "description": "Groceries", "category": "groceries"}
-    `;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const cleaned = text.replace(/```(?:json)?\n?/g, "").trim();
-    const parsed = JSON.parse(cleaned);
-
-    return { success: true, data: parsed };
+    return { success: true, data: { ...converted, type, description, category, amountOnly } };
   } catch (error) {
-    console.error("parseVoiceTransaction error:", error);
+    console.error("Voice transaction parsing failed", { name: error?.name, status: error?.status });
     return { success: false, error: "Failed to parse speech" };
   }
+}
+
+async function parseVoiceWithGemini(transcript) {
+  const categoriesList = defaultCategories
+    .map((category) => `${category.id} (${category.name}, ${category.type})`)
+    .join(", ");
+  const genAI = getGenAI();
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const prompt = `
+    You are an AI speech parser for a financial app. Convert this spoken text into structured JSON.
+    Spoken text: ${JSON.stringify(transcript)}
+
+    Available category IDs: ${categoriesList}
+
+    Extract:
+    - amount: the stated total paid or received, or the value explicitly labeled "Amount". Write it as a decimal string without currency symbols or grouping separators (e.g. "450.00"). Return JSON null if the amount is missing or ambiguous. Never infer an amount or convert a currency.
+    - currency: the three-letter ISO 4217 code for the currency of that amount. Default to "INR" if the amount has no currency or uses Indian rupees. Preserve any explicitly stated foreign currency, for example USD, EUR, GBP, AED, or JPY. Interpret unqualified dollars or $ as USD and unqualified pounds or £ as GBP. Honor specific qualifiers such as Australian dollars (AUD) and Canadian dollars (CAD). Return JSON null if an explicit currency is ambiguous or has no ISO 4217 currency code. A merchant or location alone does not specify a currency.
+    - amountOnly: true if the text only specifies an amount (in digits or number words, with optional currency), or starts with "Amount:". Otherwise false. Examples of amount-only text: "four hundred and fifty", "10 dollars", "Amount: 12.50".
+    - type: "EXPENSE" or "INCOME" (default "EXPENSE")
+    - description: brief description (e.g. "Groceries at Walmart")
+    - category: matching category ID from the list (e.g. "groceries")
+
+    Return ONLY a raw JSON object formatted like:
+    {"amount": "450.00", "currency": "INR", "amountOnly": false, "type": "EXPENSE", "description": "Groceries", "category": "groceries"}
+  `;
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+  return JSON.parse(text.replace(/```(?:json)?\n?/g, "").trim());
 }
 

@@ -17,6 +17,15 @@ export function HeaderTitle() {
     if (pathname === "/transaction/create") {
       return { section: "Transactions", page: "Add Transaction" };
     }
+    if (pathname === "/transactions") {
+      return { section: "Activity", page: "Transactions" };
+    }
+    if (pathname === "/analytics") {
+      return { section: "Activity", page: "Analytics" };
+    }
+    if (pathname === "/future-insights") {
+      return { section: "Activity", page: "Future Insights" };
+    }
     
     const parts = pathname.split("/").filter(Boolean);
     const lastPart = parts[parts.length - 1] || "Dashboard";

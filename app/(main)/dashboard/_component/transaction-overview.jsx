@@ -55,7 +55,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export function DashboardOverview({ accounts, transactions }) {
+export function DashboardOverview({ accounts, transactions, showAccountFilter = true }) {
   const [selectedBankAccountId, setSelectedBankAccountId] = useState(
     accounts.find((a) => a.isDefault)?.id || accounts[0]?.id
   );
@@ -77,8 +77,10 @@ export function DashboardOverview({ accounts, transactions }) {
 
   // Filter by selected account for recent transactions panel
   const accountTransactions = useMemo(
-    () => dateFilteredTransactions.filter((t) => t.bankAccountId === selectedBankAccountId),
-    [dateFilteredTransactions, selectedBankAccountId]
+    () => showAccountFilter
+      ? dateFilteredTransactions.filter((t) => t.bankAccountId === selectedBankAccountId)
+      : dateFilteredTransactions,
+    [dateFilteredTransactions, selectedBankAccountId, showAccountFilter]
   );
 
   // Recent 5 for this account in the chosen date range
@@ -162,18 +164,20 @@ export function DashboardOverview({ accounts, transactions }) {
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Recent Transactions
             </CardTitle>
-            <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
-              <SelectTrigger className="w-[140px] text-xs">
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {account.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {showAccountFilter && (
+              <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
+                <SelectTrigger className="w-[140px] text-xs">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
