@@ -11,6 +11,8 @@ import {
   Text,
 } from "@react-email/components";
 
+const rupees = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" });
+
 // Dummy data for preview
 const PREVIEW_DATA = {
   monthlyReport: {
@@ -72,19 +74,19 @@ export default function EmailTemplate({
               <div style={styles.stat}>
                 <Text style={styles.text}>Total Income</Text>
                 <Text style={styles.heading}>
-                  ${stats.totalIncome ?? 0}
+                  {rupees.format(stats.totalIncome ?? 0)}
                 </Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Total Expenses</Text>
                 <Text style={styles.heading}>
-                  ${stats.totalExpenses ?? 0}
+                  {rupees.format(stats.totalExpenses ?? 0)}
                 </Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Net</Text>
                 <Text style={styles.heading}>
-                  ${(stats.totalIncome ?? 0) - (stats.totalExpenses ?? 0)}
+                  {rupees.format((stats.totalIncome ?? 0) - (stats.totalExpenses ?? 0))}
                 </Text>
               </div>
             </Section>
@@ -96,7 +98,7 @@ export default function EmailTemplate({
                 {Object.entries(stats.byCategory).map(([category, amount]) => (
                   <div key={category} style={styles.row}>
                     <Text style={styles.text}>{category}</Text>
-                    <Text style={styles.text}>${amount}</Text>
+                    <Text style={styles.text}>{rupees.format(amount)}</Text>
                   </div>
                 ))}
               </Section>
@@ -142,19 +144,19 @@ export default function EmailTemplate({
               <div style={styles.stat}>
                 <Text style={styles.text}>Budget Amount</Text>
                 <Text style={styles.heading}>
-                  ${data?.budgetAmount ?? 0}
+                  {rupees.format(data?.budgetAmount ?? 0)}
                 </Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Spent So Far</Text>
                 <Text style={styles.heading}>
-                  ${data?.totalExpenses ?? 0}
+                  {rupees.format(data?.totalExpenses ?? 0)}
                 </Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Remaining</Text>
                 <Text style={styles.heading}>
-                  ${(data?.budgetAmount ?? 0) - (data?.totalExpenses ?? 0)}
+                  {rupees.format((data?.budgetAmount ?? 0) - (data?.totalExpenses ?? 0))}
                 </Text>
               </div>
             </Section>

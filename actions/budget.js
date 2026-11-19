@@ -93,7 +93,7 @@ export async function updateBudget(amount) {
 /**
  * Fetch all category budget limits and calculate current month expenses dynamically
  */
-export async function getCategoryBudgets() {
+export async function getCategoryBudgets(bankAccountId) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
@@ -109,12 +109,13 @@ export async function getCategoryBudgets() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    // 3. Fetch expenses by category for current month across all accounts
+    // 3. Fetch current-month expenses by category for the selected accounts
     const currentMonthExpenses = await db.transaction.groupBy({
       by: ["category"],
       where: {
         userId: userId,
         type: "EXPENSE",
+        ...(bankAccountId ? { bankAccountId } : {}),
         date: {
           gte: startOfMonth,
           lte: endOfMonth,

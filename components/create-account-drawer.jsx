@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Wallet, DollarSign } from "lucide-react";
+import { Loader2, Wallet, IndianRupee } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
 import { toast } from "sonner";
 
@@ -135,7 +135,7 @@ export function CreateAccountDrawer({ children, onAccountCreated, open: external
                 Initial Balance
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <IndianRupee className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="balance"
                   type="number"

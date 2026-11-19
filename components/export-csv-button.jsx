@@ -14,7 +14,7 @@ export function ExportCsvButton({ transactions = [], filename = "trakex_transact
 
     try {
       // CSV Headers
-      const headers = ["Date", "Description", "Category", "Type", "Amount ($)", "Recurring", "Status"];
+      const headers = ["Date", "Description", "Category", "Type", "Amount (₹)", "Recurring", "Status"];
 
       // CSV Rows
       const rows = transactions.map((t) => [
@@ -30,8 +30,8 @@ export function ExportCsvButton({ transactions = [], filename = "trakex_transact
       // Combine headers & rows
       const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
 
-      // Download via Blob API
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      // Include a UTF-8 BOM so spreadsheet apps recognize the rupee symbol.
+      const blob = new Blob(["\uFEFF", csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

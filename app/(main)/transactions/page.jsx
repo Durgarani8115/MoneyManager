@@ -1,5 +1,7 @@
 import React from "react";
-import { getDashboardData } from "@/actions/dashboard";
+import { getDashboardData, getUserAccounts } from "@/actions/dashboard";
+import { ActivityAccountFilter } from "@/components/activity-account-filter";
+import { ActivityNavigation, resolveActivityAccountId } from "@/components/activity-navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { unstable_rethrow } from "next/navigation";
 import TransactionTable from "../account/_components/transaction-table";
@@ -7,9 +9,11 @@ import { ExportCsvButton } from "@/components/export-csv-button";
 
 export const dynamic = "force-dynamic";
 
-export default async function TransactionsPage() {
+export default async function TransactionsPage({ searchParams }) {
   try {
-    const transactions = await getDashboardData();
+    const [accounts, params] = await Promise.all([getUserAccounts(), searchParams]);
+    const accountId = resolveActivityAccountId(params?.account, accounts);
+    const transactions = await getDashboardData(accountId === "all" ? undefined : accountId);
 
     return (
       <div className="space-y-6">
@@ -20,14 +24,19 @@ export default async function TransactionsPage() {
               Transactions
             </h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              All transactions across every account — search, filter, and export in one place.
+              Search, filter, and export recorded transactions.
             </p>
           </div>
-          <ExportCsvButton transactions={transactions || []} />
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <ActivityAccountFilter accounts={accounts} accountId={accountId} />
+            <ExportCsvButton transactions={transactions} />
+          </div>
         </div>
 
+        <ActivityNavigation current="transactions" accountId={accountId} />
+
         {/* Global Transaction Table */}
-        <TransactionTable transactions={transactions || []} />
+        <TransactionTable key={accountId} transactions={transactions} />
       </div>
     );
   } catch (error) {

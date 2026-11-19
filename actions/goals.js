@@ -184,9 +184,9 @@ export async function addContribution(goalId, { amount, idempotencyKey }) {
     // 2. Prevent negative goal balance
     if (numAmount < 0 && currentTotal + numAmount < 0) {
       throw new Error(
-        `Cannot withdraw $${Math.abs(numAmount).toFixed(
+        `Cannot withdraw ₹${Math.abs(numAmount).toFixed(
           2
-        )}. Goal balance is only $${currentTotal.toFixed(2)}.`
+        )}. Goal balance is only ₹${currentTotal.toFixed(2)}.`
       );
     }
 

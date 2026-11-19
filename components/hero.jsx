@@ -97,7 +97,7 @@ const HeroSection = ({ user }) => {
               
               {/* Dashboard Preview Banner Image */}
               <Image
-                src="/banner.jpeg"
+                src="/banner-inr.jpeg"
                 width={1280}
                 height={720}
                 alt="MoneyManager Dashboard Preview"
@@ -116,7 +116,7 @@ const HeroSection = ({ user }) => {
                     <CheckCircle2 className="h-3 w-3 text-emerald-400" />
                   </div>
                   <div className="text-[11px] text-emerald-400 font-mono font-semibold">
-                    $4.75 • AI Scanned & Categorized
+                    ₹4.75 • AI Scanned & Categorized
                   </div>
                 </div>
               </div>

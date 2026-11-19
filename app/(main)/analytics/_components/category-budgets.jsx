@@ -229,7 +229,7 @@ export function CategoryBudgets({ initialBudgets = [] }) {
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Monthly Limit Amount ($)
+                Monthly Limit Amount (₹)
               </label>
               <Input
                 type="number"

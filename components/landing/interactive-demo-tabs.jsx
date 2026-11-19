@@ -83,7 +83,7 @@ export const InteractiveDemoTabs = () => {
                 </div>
                 <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 space-y-1">
                   <div className="text-[11px] text-zinc-500">Total Amount</div>
-                  <div className="font-mono font-bold text-emerald-500 text-lg">$84.50</div>
+                  <div className="font-mono font-bold text-emerald-500 text-lg">₹84.50</div>
                 </div>
                 <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 space-y-1">
                   <div className="text-[11px] text-zinc-500">Category Assigned</div>
@@ -108,8 +108,8 @@ export const InteractiveDemoTabs = () => {
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1.5">
-                    <span className="text-zinc-700 dark:text-zinc-300">Dining Out Budget ($400 limit)</span>
-                    <span className="text-emerald-500 font-mono font-bold">$290.00 spent</span>
+                    <span className="text-zinc-700 dark:text-zinc-300">Dining Out Budget (₹400 limit)</span>
+                    <span className="text-emerald-500 font-mono font-bold">₹290.00 spent</span>
                   </div>
                   <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-3 rounded-full overflow-hidden">
                     <div className="bg-emerald-500 h-full w-[72.5%]" />
@@ -118,7 +118,7 @@ export const InteractiveDemoTabs = () => {
 
                 <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                   <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span>AI Insight: You are on track to save $110 in dining out this month!</span>
+                  <span>AI Insight: You are on track to save ₹110 in dining out this month!</span>
                 </div>
               </div>
             </div>

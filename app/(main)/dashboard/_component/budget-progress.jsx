@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateBudget } from "@/actions/budget";
 
-export function BudgetProgress({ initialBudget, currentExpenses, accountName }) {
+export function BudgetProgress({ initialBudget, currentExpenses, accountName, controls }) {
   const [isEditing, setIsEditing] = useState(false);
   const [newBudget, setNewBudget] = useState(
     initialBudget?.amount?.toString() || ""
@@ -55,10 +55,10 @@ export function BudgetProgress({ initialBudget, currentExpenses, accountName }) 
 
   return (
     <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-xs mb-6">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex-1">
+      <CardHeader className="flex flex-col gap-3 pb-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
           <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            Monthly Budget ({accountName})
+            Monthly Budget{accountName ? ` (${accountName})` : ""}
           </CardTitle>
           <div className="flex items-center gap-2 mt-1">
             {isEditing ? (
@@ -110,6 +110,7 @@ export function BudgetProgress({ initialBudget, currentExpenses, accountName }) 
             )}
           </div>
         </div>
+        {controls}
       </CardHeader>
       <CardContent>
         {initialBudget && (

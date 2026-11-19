@@ -768,7 +768,7 @@ export function TripDetailClient({ trip: initialTrip }) {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Estimated Cost ($) (Optional)
+                Estimated Cost (₹) (Optional)
               </label>
               <Input
                 type="number"
@@ -814,7 +814,7 @@ export function TripDetailClient({ trip: initialTrip }) {
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Total Amount ($ / ₹)
+                Total Amount (₹)
               </label>
               <Input
                 type="number"

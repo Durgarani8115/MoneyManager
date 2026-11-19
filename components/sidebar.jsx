@@ -23,6 +23,7 @@ import {
   Home,
   CreditCard,
   BarChart3,
+  CalendarClock,
   PlusCircle,
   ChevronRight,
   ArrowLeftRight,
@@ -71,10 +72,16 @@ const navItems = [
       p?.startsWith("/transactions") || p?.startsWith("/transaction"),
   },
   {
-    label: "Analytics & Budget",
+    label: "Analytics",
     href: "/analytics",
     icon: BarChart3,
     isActive: (p) => p === "/analytics",
+  },
+  {
+    label: "Future Insights",
+    href: "/future-insights",
+    icon: CalendarClock,
+    isActive: (p) => p === "/future-insights",
   },
 ];
 

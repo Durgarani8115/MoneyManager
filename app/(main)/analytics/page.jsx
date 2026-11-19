@@ -1,61 +1,89 @@
 import React, { Suspense } from "react";
 import { getDashboardData, getUserAccounts } from "@/actions/dashboard";
 import { getCurrentBudget, getCategoryBudgets } from "@/actions/budget";
+import { ActivityAccountFilter } from "@/components/activity-account-filter";
+import { ActivityNavigation, resolveActivityAccountId } from "@/components/activity-navigation";
 import { DashboardOverview } from "../dashboard/_component/transaction-overview";
 import { BudgetProgress } from "../dashboard/_component/budget-progress";
+import { AnalyticsPeriodFilter } from "./_components/analytics-period-filter";
 import { SpendingTrends } from "./_components/spending-trends";
 import { CategoryBudgets } from "./_components/category-budgets";
 import { DashboardOverviewSkeleton } from "@/components/skeletons";
 import { unstable_rethrow } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
+import { getAnalyticsPeriod } from "@/lib/analytics-period";
 
 export const dynamic = "force-dynamic";
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({ searchParams }) {
   try {
-    const accounts = await getUserAccounts();
-    const transactions = await getDashboardData();
-    const defaultAccount = accounts.find((a) => a.isDefault);
+    const [accounts, params] = await Promise.all([getUserAccounts(), searchParams]);
+    const accountId = resolveActivityAccountId(params?.account, accounts);
+    const bankAccountId = accountId === "all" ? undefined : accountId;
+    const budgetAccountId = resolveActivityAccountId(params?.budgetAccount, accounts);
+    const budgetBankAccountId = budgetAccountId === "all" ? undefined : budgetAccountId;
+    const [transactions, budgetData, categoryBudgetsRes] = await Promise.all([
+      getDashboardData(bankAccountId),
+      accounts.length > 0 ? getCurrentBudget(budgetBankAccountId) : null,
+      getCategoryBudgets(bankAccountId),
+    ]);
 
-    let budgetData = null;
-    if (defaultAccount) {
-      budgetData = await getCurrentBudget(defaultAccount.id);
-    }
-
-    const categoryBudgetsRes = await getCategoryBudgets();
     const categoryBudgetsData = categoryBudgetsRes?.success ? categoryBudgetsRes.data : [];
+    const analytics = getAnalyticsPeriod(transactions, params?.period);
 
     return (
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="pb-2 border-b border-zinc-200 dark:border-zinc-800">
-          <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight gradient-title">
-            Analytics & Budget
+        <header className="border-b border-zinc-200 pb-2 dark:border-zinc-800">
+          <h1 className="gradient-title text-2xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Analytics
           </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Deep-dive into your spending patterns, 6-month trends, category limits, and budget performance.
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            See spending by category and track your income, expenses, and monthly budgets.
           </p>
-        </div>
+        </header>
 
-        {/* Global Monthly Budget Health */}
-        {defaultAccount && (
+        <ActivityNavigation current="analytics" accountId={accountId} />
+
+        {/* Monthly Budget Health */}
+        {budgetData && (
           <BudgetProgress
-            initialBudget={budgetData?.budget}
-            currentExpenses={budgetData?.currentExpenses || 0}
+            key={`monthly-budget-${budgetAccountId}`}
+            initialBudget={budgetData.budget}
+            currentExpenses={budgetData.currentExpenses}
+            controls={
+              <ActivityAccountFilter
+                accounts={accounts}
+                accountId={budgetAccountId}
+                queryParam="budgetAccount"
+                label="Filter monthly budget by account"
+              />
+            }
           />
         )}
 
-        {/* 6-Month Spending & Income Trend Line Chart */}
-        <SpendingTrends transactions={transactions || []} />
+        <SpendingTrends
+          chartData={analytics.chartData}
+          periodLabel={analytics.label}
+          controls={
+            <>
+              <ActivityAccountFilter accounts={accounts} accountId={accountId} />
+              <AnalyticsPeriodFilter period={analytics.period} />
+            </>
+          }
+        />
 
         {/* Category Budget Limits Grid */}
-        <CategoryBudgets initialBudgets={categoryBudgetsData} />
+        <CategoryBudgets key={`category-budgets-${accountId}`} initialBudgets={categoryBudgetsData} />
 
         {/* Dynamic Period Charts — Expense Breakdown & Recent Transactions */}
         <Suspense fallback={<DashboardOverviewSkeleton />}>
           <DashboardOverview
+            key={`overview-${accountId}`}
             accounts={accounts}
-            transactions={transactions || []}
+            transactions={analytics.transactions}
+            showAccountFilter={false}
+            periodLabel={analytics.label}
           />
         </Suspense>
       </div>

@@ -55,7 +55,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export function DashboardOverview({ accounts, transactions }) {
+export function DashboardOverview({ accounts, transactions, showAccountFilter = true, periodLabel }) {
   const [selectedBankAccountId, setSelectedBankAccountId] = useState(
     accounts.find((a) => a.isDefault)?.id || accounts[0]?.id
   );
@@ -63,6 +63,8 @@ export function DashboardOverview({ accounts, transactions }) {
 
   // Compute date filter bounds
   const dateFilteredTransactions = useMemo(() => {
+    if (periodLabel) return transactions;
+
     const range = DATE_RANGES[dateRange];
     const now = new Date();
     const startDate = range.days
@@ -73,12 +75,14 @@ export function DashboardOverview({ accounts, transactions }) {
       const d = new Date(t.date);
       return d >= startDate && d <= endDate;
     });
-  }, [transactions, dateRange]);
+  }, [transactions, dateRange, periodLabel]);
 
   // Filter by selected account for recent transactions panel
   const accountTransactions = useMemo(
-    () => dateFilteredTransactions.filter((t) => t.bankAccountId === selectedBankAccountId),
-    [dateFilteredTransactions, selectedBankAccountId]
+    () => showAccountFilter
+      ? dateFilteredTransactions.filter((t) => t.bankAccountId === selectedBankAccountId)
+      : dateFilteredTransactions,
+    [dateFilteredTransactions, selectedBankAccountId, showAccountFilter]
   );
 
   // Recent 5 for this account in the chosen date range
@@ -111,6 +115,8 @@ export function DashboardOverview({ accounts, transactions }) {
     [dateFilteredTransactions]
   );
 
+  const netAmount = totalIncome - totalExpense;
+
   return (
     <div className="space-y-4">
       {/* ── Period Selector + Summary Totals ── */}
@@ -132,26 +138,28 @@ export function DashboardOverview({ accounts, transactions }) {
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Net</p>
             <p className={cn(
               "text-lg font-black tracking-tight",
-              totalIncome - totalExpense >= 0 ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"
+              netAmount >= 0 ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"
             )}>
-              {totalIncome - totalExpense >= 0 ? "+" : ""}${(totalIncome - totalExpense).toFixed(2)}
+              {netAmount >= 0 ? "+" : "-"}₹{Math.abs(netAmount).toFixed(2)}
             </p>
           </div>
         </div>
 
         {/* Date Range Picker */}
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-[160px] border-zinc-300 dark:border-zinc-700 text-sm">
-            <SelectValue placeholder="Select range" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(DATE_RANGES).map(([key, { label }]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!periodLabel && (
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-[160px] border-zinc-300 dark:border-zinc-700 text-sm">
+              <SelectValue placeholder="Select range" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(DATE_RANGES).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* ── Charts Row ── */}
@@ -162,18 +170,20 @@ export function DashboardOverview({ accounts, transactions }) {
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Recent Transactions
             </CardTitle>
-            <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
-              <SelectTrigger className="w-[140px] text-xs">
-                <SelectValue placeholder="Select account" />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    {account.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {showAccountFilter && (
+              <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
+                <SelectTrigger className="w-[140px] text-xs">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -218,7 +228,7 @@ export function DashboardOverview({ accounts, transactions }) {
                         transaction.type === "EXPENSE" ? "text-rose-500" : "text-emerald-500"
                       )}
                     >
-                      {transaction.type === "EXPENSE" ? "-" : "+"}$
+                      {transaction.type === "EXPENSE" ? "-" : "+"}₹
                       {transaction.amount.toFixed(2)}
                     </div>
                   </div>
@@ -234,7 +244,7 @@ export function DashboardOverview({ accounts, transactions }) {
             <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               Expense Breakdown
               <span className="ml-2 text-xs text-zinc-400 font-normal">
-                ({DATE_RANGES[dateRange].label})
+                ({periodLabel ?? DATE_RANGES[dateRange].label})
               </span>
             </CardTitle>
           </CardHeader>

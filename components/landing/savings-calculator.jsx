@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import SpotlightCard from "@/components/ui/react-bits/spotlight-card";
-import { Calculator, Clock, DollarSign, Sparkles } from "lucide-react";
+import { Calculator, Clock, IndianRupee, Sparkles } from "lucide-react";
 
 export const SavingsCalculator = () => {
   const [monthlySpend, setMonthlySpend] = useState(50000);
@@ -73,7 +73,7 @@ export const SavingsCalculator = () => {
             <div className="md:col-span-5 grid grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-zinc-950 text-white dark:bg-zinc-900 border border-zinc-800 space-y-1">
                 <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
-                  <DollarSign className="h-3.5 w-3.5" />
+                  <IndianRupee className="h-3.5 w-3.5" />
                   <span>Money Saved</span>
                 </div>
                 <div className="text-2xl font-black font-mono text-emerald-400">
