@@ -20,9 +20,11 @@ export default async function AnalyticsPage({ searchParams }) {
     const [accounts, params] = await Promise.all([getUserAccounts(), searchParams]);
     const accountId = resolveActivityAccountId(params?.account, accounts);
     const bankAccountId = accountId === "all" ? undefined : accountId;
+    const budgetAccountId = resolveActivityAccountId(params?.budgetAccount, accounts);
+    const budgetBankAccountId = budgetAccountId === "all" ? undefined : budgetAccountId;
     const [transactions, budgetData, categoryBudgetsRes] = await Promise.all([
       getDashboardData(bankAccountId),
-      accounts.length > 0 ? getCurrentBudget(bankAccountId) : null,
+      accounts.length > 0 ? getCurrentBudget(budgetBankAccountId) : null,
       getCategoryBudgets(bankAccountId),
     ]);
 
@@ -46,10 +48,17 @@ export default async function AnalyticsPage({ searchParams }) {
         {/* Monthly Budget Health */}
         {budgetData && (
           <BudgetProgress
-            key={`monthly-budget-${accountId}`}
+            key={`monthly-budget-${budgetAccountId}`}
             initialBudget={budgetData.budget}
             currentExpenses={budgetData.currentExpenses}
-            controls={<ActivityAccountFilter accounts={accounts} accountId={accountId} />}
+            controls={
+              <ActivityAccountFilter
+                accounts={accounts}
+                accountId={budgetAccountId}
+                queryParam="budgetAccount"
+                label="Filter monthly budget by account"
+              />
+            }
           />
         )}
 

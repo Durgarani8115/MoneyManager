@@ -16,9 +16,15 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+const conversionExamples = {
+  USD: "₹8,360.00",
+  INR: "₹100.00",
+  EUR: "₹9,086.96",
+  GBP: "₹10,663.27",
+};
+
 export const BentoFeatures = () => {
   const [selectedCurrency, setSelectedCurrency] = useState("INR");
-  const currencyRates = { USD: "$ 1,250.00", INR: "₹ 1,04,500.00", EUR: "€ 1,150.00", GBP: "£ 980.00" };
 
   return (
     <section id="features" className="py-24 relative scroll-mt-24">
@@ -75,11 +81,11 @@ export const BentoFeatures = () => {
               <div className="pt-3 space-y-2">
                 <div className="flex justify-between items-center text-sm font-semibold">
                   <span>Apple Store Tech Purchase</span>
-                  <span className="text-emerald-400 font-mono font-bold">$1,299.00</span>
+                  <span className="text-emerald-400 font-mono font-bold">₹1,299.00</span>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[11px]">
                   <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">Category: Electronics</span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/50">Tax: $103.92</span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/50">Tax: ₹103.92</span>
                   <span className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">Payment: Card (**** 4821)</span>
                 </div>
               </div>
@@ -171,30 +177,32 @@ export const BentoFeatures = () => {
             </div>
           </SpotlightCard>
 
-          {/* Card 5: Multi-Currency Support (Span 4) */}
+          {/* Card 5: Foreign Currency Conversion (Span 4) */}
           <SpotlightCard className="lg:col-span-4 p-8 flex flex-col justify-between">
             <div>
               <div className="p-3.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 w-fit mb-6">
                 <Globe className="h-7 w-7" />
               </div>
               <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                Multi-Currency Switching
+                Foreign Currency Conversion
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed">
-                Track global accounts seamlessly with automatic live currency exchange rate conversions.
+                Record supported foreign-currency transactions by voice and review the amount in rupees before saving.
               </p>
             </div>
 
             {/* Interactive Currency Switcher Pill */}
             <div className="mt-6 p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 space-y-3">
               <div className="flex justify-between items-center text-xs font-semibold text-zinc-500">
-                <span>Select Currency</span>
-                <span className="font-mono text-emerald-500 font-bold">{currencyRates[selectedCurrency]}</span>
+                <span>Example · 100 {selectedCurrency}</span>
+                <span className="font-mono text-emerald-500 font-bold">{conversionExamples[selectedCurrency]}</span>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
-                {Object.keys(currencyRates).map((curr) => (
+                {Object.keys(conversionExamples).map((curr) => (
                   <button
                     key={curr}
+                    type="button"
+                    aria-pressed={selectedCurrency === curr}
                     onClick={() => setSelectedCurrency(curr)}
                     className={`py-1 text-xs font-mono rounded font-semibold transition-all ${
                       selectedCurrency === curr

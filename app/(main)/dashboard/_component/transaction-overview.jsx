@@ -115,6 +115,8 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
     [dateFilteredTransactions]
   );
 
+  const netAmount = totalIncome - totalExpense;
+
   return (
     <div className="space-y-4">
       {/* ── Period Selector + Summary Totals ── */}
@@ -136,9 +138,9 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Net</p>
             <p className={cn(
               "text-lg font-black tracking-tight",
-              totalIncome - totalExpense >= 0 ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"
+              netAmount >= 0 ? "text-blue-600 dark:text-blue-400" : "text-amber-600 dark:text-amber-400"
             )}>
-              {totalIncome - totalExpense >= 0 ? "+" : ""}${(totalIncome - totalExpense).toFixed(2)}
+              {netAmount >= 0 ? "+" : "-"}₹{Math.abs(netAmount).toFixed(2)}
             </p>
           </div>
         </div>
@@ -226,7 +228,7 @@ export function DashboardOverview({ accounts, transactions, showAccountFilter = 
                         transaction.type === "EXPENSE" ? "text-rose-500" : "text-emerald-500"
                       )}
                     >
-                      {transaction.type === "EXPENSE" ? "-" : "+"}$
+                      {transaction.type === "EXPENSE" ? "-" : "+"}₹
                       {transaction.amount.toFixed(2)}
                     </div>
                   </div>

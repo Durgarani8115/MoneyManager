@@ -14,7 +14,7 @@ export const statsData = [
         label: "Active Users",
     },
     {
-        value: "$2B+",
+        value: "₹2B+",
         label: "Transactions Tracked",
     },
     {
@@ -53,8 +53,8 @@ export const featuresData = [
     },
     {
         icon: <Globe className="h-8 w-8 text-zinc-900 dark:text-zinc-100" />,
-        title: "Multi-Currency",
-        description: "Support for multiple currencies with real-time conversion",
+        title: "Foreign Currency Conversion",
+        description: "Convert supported foreign-currency voice transactions to rupees",
     },
     {
         icon: <Zap className="h-8 w-8 text-zinc-900 dark:text-zinc-100" />,

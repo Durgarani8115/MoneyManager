@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { Loader2, Plane, MapPin, DollarSign } from "lucide-react";
+import { Loader2, Plane, MapPin, IndianRupee } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -104,7 +104,7 @@ export function CreateTripDrawer({ open, onOpenChange, onSuccess }) {
                 Total Budget (₹)
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <IndianRupee className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="trip-budget"
                   type="number"

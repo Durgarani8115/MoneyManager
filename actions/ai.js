@@ -112,14 +112,15 @@ export async function getDashboardAIInsights() {
 
     const prompt = `
       Analyze this user's current month financial summary and provide 3 short, friendly, actionable insights (max 1-2 sentences each).
+      All monetary values in this summary are in INR. Use the ₹ symbol when displaying them.
 
       Summary:
       - Total Accounts: ${accounts.length}
-      - Total Net Worth: $${accounts.reduce((s, a) => s + a.balance.toNumber(), 0).toFixed(2)}
-      - This Month Income: $${income.toFixed(2)}
-      - This Month Expenses: $${expense.toFixed(2)}
+      - Total Net Worth: ₹${accounts.reduce((s, a) => s + a.balance.toNumber(), 0).toFixed(2)}
+      - This Month Income: ₹${income.toFixed(2)}
+      - This Month Expenses: ₹${expense.toFixed(2)}
       - Expenses by Category: ${JSON.stringify(categoryBreakdown)}
-      - Active Goals: ${goals.map((g) => `${g.name}: $${g.currentAmount.toNumber()}/$${g.targetAmount.toNumber()}`).join(", ")}
+      - Active Goals: ${goals.map((g) => `${g.name}: ₹${g.currentAmount.toNumber()}/₹${g.targetAmount.toNumber()}`).join(", ")}
 
       Return ONLY a raw JSON array of 3 strings e.g. ["Insight 1", "Insight 2", "Insight 3"].
     `;
@@ -175,12 +176,12 @@ export async function chatWithAIAdvisor(messages) {
     const context = `
       User Context:
       - Name: ${user.name || "User"}
-      - Accounts: ${accounts.map((a) => `${a.name} ($${a.balance.toNumber().toFixed(2)})`).join(", ")}
-      - Total Net Worth: $${accounts.reduce((s, a) => s + a.balance.toNumber(), 0).toFixed(2)}
-      - This Month Income: $${income.toFixed(2)}
-      - This Month Expenses: $${expense.toFixed(2)}
-      - Active Savings Goals: ${goals.map((g) => `${g.name} (Saved: $${g.currentAmount.toNumber()}/Target: $${g.targetAmount.toNumber()})`).join(", ")}
-      - Recent Transactions: ${recentTx.map((t) => `${t.date.toISOString().split("T")[0]}: ${t.description || "Tx"} - $${t.amount.toNumber()} (${t.type})`).join("; ")}
+      - Accounts: ${accounts.map((a) => `${a.name} (₹${a.balance.toNumber().toFixed(2)})`).join(", ")}
+      - Total Net Worth: ₹${accounts.reduce((s, a) => s + a.balance.toNumber(), 0).toFixed(2)}
+      - This Month Income: ₹${income.toFixed(2)}
+      - This Month Expenses: ₹${expense.toFixed(2)}
+      - Active Savings Goals: ${goals.map((g) => `${g.name} (Saved: ₹${g.currentAmount.toNumber()}/Target: ₹${g.targetAmount.toNumber()})`).join(", ")}
+      - Recent Transactions: ${recentTx.map((t) => `${t.date.toISOString().split("T")[0]}: ${t.description || "Tx"} - ₹${t.amount.toNumber()} (${t.type})`).join("; ")}
     `;
 
     const genAI = getGenAI();
@@ -189,6 +190,7 @@ export async function chatWithAIAdvisor(messages) {
     const systemPrompt = `
       You are Trakex AI — an expert, friendly personal finance advisor. 
       Answer the user's questions clearly, concisely, and accurately based on their real financial context provided below.
+      The amounts in the financial context are in INR. Use the ₹ symbol when displaying these values.
       Keep responses brief (max 2-3 short paragraphs).
 
       ${context}

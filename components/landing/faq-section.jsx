@@ -21,8 +21,8 @@ export const FaqSection = () => {
       a: "Absolutely. We utilize bank-grade encryption (AES-256) for data storage, secure Clerk authentication, and Arcjet security middleware to protect your transactions and personal privacy.",
     },
     {
-      q: "Can I manage multiple currencies and bank accounts?",
-      a: "Yes, you can create and manage checking, credit card, and savings accounts in multiple currencies ($ USD, ₹ INR, € EUR, £ GBP) with real-time conversion rates.",
+      q: "Can I track foreign-currency transactions?",
+      a: "Yes. Account balances are shown in rupees (INR). When you enter a supported foreign-currency transaction by voice, MoneyManager converts the amount to rupees using the latest available rate.",
     },
   ];
 

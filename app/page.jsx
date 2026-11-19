@@ -42,7 +42,7 @@ export default async function Home() {
                             </div>
                             <div className="text-center space-y-1">
                                 <div className="text-3xl md:text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
-                                    <AnimatedCounter value="2" prefix="$" suffix="B+" />
+                                    <AnimatedCounter value="2" prefix="₹" suffix="B+" />
                                 </div>
                                 <div className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 font-semibold">Transactions Tracked</div>
                             </div>
